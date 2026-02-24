@@ -1,0 +1,17 @@
+  const { data: todaysAppointments = [] } = useQuery<Appointment[]>({
+    queryKey: ["/api/appointments/doctor", user?.id],
+    queryFn: async () => {
+      // First try to fetch real appointments
+      try {
+        const response = await appointmentService.getByDoctorId(user?.id);
+        if (response.data && !response.error) {
+          return response.data;
+        }
+      } catch (error) {
+        console.log("Failed to fetch real appointments, using mock data");
+      }
+      
+      // Return mock appointments
+      return mockAppointments;
+    }
+  });

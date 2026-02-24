@@ -1,0 +1,267 @@
+SevaMed HMS – Ultimate React Frontend Prompt (AI + Fitness + Attendance)
+
+Objective:
+Build a modern, professional React frontend for SevaMed HMS, fully connected to MongoDB backend via APIs. Include:
+
+Role-based dashboards: Admin, Doctor, Reception, Patient
+
+AI-driven suggestions: Health tips, medication reminders, disease knowledge
+
+Interactive Patient Dashboard with: knowledge widgets, fitness tracker, BMI calculation, lifestyle-based recommendations
+
+Internal chat between all roles
+
+Queue & payment management
+
+Staff attendance tracking (Doctors and Reception)
+
+Admin monitoring dashboard to oversee all activities
+
+Dynamic educational pages with videos and author info
+
+Language support: English (default) + Telugu
+
+Backend dependency: Frontend cannot function offline
+
+Medical-themed, responsive UI
+
+1. Languages
+
+English (default) + Telugu
+
+Language selector on all pages (context/localStorage)
+
+2. Index / Home Page
+
+Welcome header, mission, vision, core values
+
+Overview of services with medical images
+
+Support links, hashtags (#Healthcare, #Wellness, #SevaMed)
+
+Prominent Register and Login buttons
+
+Top-right login dropdown with role selection
+
+Header/Footer consistent
+
+Healthcare-themed background
+
+3. Authentication
+
+Register page for patients (age input for AI personalization)
+
+Login page:
+
+Roles: Admin (3 admins), Doctor, Patient, Reception
+
+Doctor login: ID + department
+
+Admin/Reception: standard credentials
+
+Role-based routing to dashboards
+
+4. Dashboards
+Admin Dashboard
+
+Monitor all patient activities, staff attendance, check-ins/check-outs, queues, payments
+
+AI workflow suggestions
+
+Track Doctor & Reception shifts (lab, ICU, resting, lunch)
+
+Internal chat with all staff
+
+Doctor Dashboard
+
+View patient appointments & details
+
+Track personal attendance/shifts (lab, ICU, resting, lunch)
+
+Provide health suggestions and reminders to patients
+
+Internal chat with Admin & Reception
+
+AI suggestions for patient care
+
+Reception Dashboard
+
+Queue & payment management
+
+Track personal attendance (desk, resting, lunch)
+
+Internal chat with Admin & Doctors
+
+AI reminders & suggestions
+
+Patient Dashboard
+
+Interactive AI assistant:
+
+Medication reminders
+
+Wellness & lifestyle suggestions
+
+Age/past-symptom personalized recommendations
+
+Dynamic Knowledge Widgets:
+
+“Do you know the real cause of cancer?” → modal with full info, author, video links
+
+Fitness Tracker Page:
+
+Calculate BMI, monitor lifestyle habits
+
+Provide exercise & nutrition recommendations
+
+Queue & appointment tracking
+
+Chat with Doctor or Reception
+
+5. AI Features
+
+Patient AI learns age, past symptoms, lifestyle → reminders & tips
+
+Staff AI suggestions: workflow improvements, patient prioritization
+
+Knowledge widgets with detailed explanations & videos
+
+Alerts color-coded: green/blue normal, red urgent
+
+6. Styling / Theme
+
+Medical colors:
+
+White (#FFFFFF), Blue (#1E40AF / #0A74DA), Green (#10B981 / #059669), Red (#EF4444 / #DC2626), Gray (#F3F4F6 / #E5E7EB)
+
+Healthcare-themed images & illustrations
+
+Responsive, accessible, smooth transitions
+
+Consistent across dashboards & pages
+
+7. Backend Dependency
+
+Axios setup for all API calls
+
+Overlay if backend unreachable
+
+Frontend cannot function offline
+
+8. Internal Chat
+
+Real-time chat between all roles
+
+Role-based channels & direct messaging
+
+9. Dynamic Knowledge Widgets
+
+Disease & medication info panels with:
+
+Full explanation
+
+Author info
+
+Related videos
+
+Adaptive AI suggestions based on patient profile
+
+10. Folder Structure
+seva-med-frontend/
+├── public/assets/images/
+├── src/
+│   ├── api/
+│   ├── assets/
+│   ├── components/
+│   │   ├── common/
+│   │   ├── index/
+│   │   ├── login/
+│   │   ├── register/
+│   │   ├── dashboards/
+│   │   │   ├── adminYoga/
+│   │   │   ├── adminBhetapudi/
+│   │   │   ├── adminPlaceholder/
+│   │   │   ├── doctor/       # Attendance, suggestions, reminders
+│   │   │   ├── patient/      # AI assistant, knowledge widgets, fitness tracker
+│   │   │   └── reception/    # Attendance, queue, payments
+│   │   ├── chat/
+│   │   ├── queue/
+│   │   ├── payments/
+│   │   ├── ai/
+│   │   ├── fitness/          # BMI calculator & lifestyle recommendations
+│   │   ├── knowledge/
+│   │   └── settings/
+│   ├── contexts/
+│   ├── hooks/
+│   ├── i18n/
+│   ├── layouts/
+│   ├── pages/
+│   │   ├── IndexPage.jsx
+│   │   ├── RegisterPage.jsx
+│   │   ├── LoginPage.jsx
+│   │   └── dashboards/
+│   │       ├── AdminYogaDashboard.jsx
+│   │       ├── AdminBhetapudiDashboard.jsx
+│   │       ├── AdminPlaceholderDashboard.jsx
+│   │       ├── DoctorDashboard.jsx
+│   │       ├── PatientDashboard.jsx
+│   │       └── ReceptionDashboard.jsx
+│   ├── routes/
+│   ├── services/
+│   ├── styles/
+│   ├── utils/
+│   ├── App.jsx
+│   └── index.jsx
+├── .env
+├── package.json
+└── README.md
+
+11. Tailwind Colors
+module.exports = {
+  theme: {
+    extend: {
+      colors: {
+        primary: '#1E40AF',
+        accent: '#10B981',
+        alert: '#EF4444',
+        background: '#F3F4F6',
+        text: '#1F2937',
+        overlay: 'rgba(0,0,0,0.3)',
+      },
+    },
+  },
+};
+
+✅ Key Features
+
+Multi-role dashboards (Admin, Doctor, Reception, Patient)
+
+AI-driven health suggestions, reminders, and dynamic knowledge
+
+Patient fitness tracker & BMI-based lifestyle recommendations
+
+Staff attendance tracking (Doctor & Reception)
+
+Admin monitors all activities & attendance
+
+Queue management, payment handling
+
+Internal chat
+
+English + Telugu support
+
+Backend connectivity enforced
+
+Responsive, professional, medical-themed UI
+
+If you want, I can start generating the React skeleton code next, including:
+
+IndexPage.jsx with mission/vision/services
+
+LoginPage.jsx with role selection (3 admins included)
+
+PatientDashboard.jsx with AI suggestions, knowledge widgets, fitness tracker, interactive cards
+
+DoctorDashboard.jsx with attendance tracking & patient reminders
+
+Tailwind setup + Axios backend connectivity + language switching
