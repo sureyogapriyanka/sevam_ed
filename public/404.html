@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>Page Not Found</title>
+    <script>
+      // Handle client-side routing for GitHub Pages
+      (function() {
+        const path = window.location.pathname;
+        const base = '/sevamedHMS';
+        
+        // If we're already at the base path, don't redirect
+        if (path === base + '/' || path === base) {
+          return;
+        }
+        
+        // If the path doesn't start with our base, redirect to the base
+        if (!path.startsWith(base)) {
+          window.location.replace(base + '/#' + path);
+        }
+      })();
+    </script>
+  </head>
+  <body>
+    <div id="root"></div>
+  </body>
+</html>
