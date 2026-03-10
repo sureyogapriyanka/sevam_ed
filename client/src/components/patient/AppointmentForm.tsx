@@ -19,7 +19,8 @@ import {
     Stethoscope,
     Users,
     FileText,
-    CheckCircle
+    CheckCircle,
+    AlertTriangle
 } from "lucide-react";
 
 
@@ -39,6 +40,7 @@ interface Doctor {
     department: string;
     specialization: string;
     isOnline: boolean;
+    image?: string;
 }
 
 export default function AppointmentForm({ onSuccess }: { onSuccess: () => void }) {
@@ -55,7 +57,7 @@ export default function AppointmentForm({ onSuccess }: { onSuccess: () => void }
         patientId: patient?.id || "",
         doctorId: "",
         scheduledAt: new Date().toISOString(),
-        status: "scheduled",
+        status: "pending",
         priority: "normal",
         symptoms: "",
         notes: ""
@@ -110,32 +112,28 @@ export default function AppointmentForm({ onSuccess }: { onSuccess: () => void }
                 console.log("Using mock doctors for demonstration");
                 return [
                     {
-                        _id: "mock1",
-                        name: "Dr. Rajesh Kumar",
+                        _id: "DOC001",
+                        name: "Dr. Sure Yoga Priyanka",
                         department: "Cardiology",
-                        specialization: "Heart Specialist",
-                        isOnline: true
+                        specialization: "Cardiologist",
+                        isOnline: true,
+                        image: "https://images.unsplash.com/photo-1559839734-2b71f1536783?auto=format&fit=crop&q=80&w=200"
                     },
                     {
-                        _id: "mock2",
-                        name: "Dr. Priya Sharma",
-                        department: "Pediatrics",
-                        specialization: "Child Specialist",
-                        isOnline: true
-                    },
-                    {
-                        _id: "mock3",
-                        name: "Dr. Amit Patel",
-                        department: "Orthopedics",
-                        specialization: "Bone Specialist",
-                        isOnline: true
-                    },
-                    {
-                        _id: "mock4",
-                        name: "Dr. Sunita Reddy",
+                        _id: "DOC002",
+                        name: "Dr. Bhetapudi Manasa",
                         department: "Neurology",
-                        specialization: "Brain Specialist",
-                        isOnline: true
+                        specialization: "Neurologist",
+                        isOnline: true,
+                        image: "https://images.unsplash.com/photo-1594824476967-48c8b964273f?auto=format&fit=crop&q=80&w=200"
+                    },
+                    {
+                        _id: "DOC003",
+                        name: "Dr. Bhimavarapu Bhavana",
+                        department: "Emergency Medicine",
+                        specialization: "Emergency Physician",
+                        isOnline: true,
+                        image: "https://images.unsplash.com/photo-1622253692010-333f2da6027a?auto=format&fit=crop&q=80&w=200"
                     }
                 ];
             }
@@ -149,7 +147,8 @@ export default function AppointmentForm({ onSuccess }: { onSuccess: () => void }
                 name: doctor.name,
                 department: doctor.department || "General Medicine",
                 specialization: doctor.specialization || "General Practitioner",
-                isOnline: true // Set all doctors as online
+                isOnline: true, // Set all doctors as online
+                image: doctor.profileImage || `https://ui-avatars.com/api/?name=${encodeURIComponent(doctor.name)}&background=eff6ff&color=2563eb`
             }));
         }
     });
@@ -181,38 +180,59 @@ export default function AppointmentForm({ onSuccess }: { onSuccess: () => void }
             return appointmentService.create(data);
         },
         onSuccess: (response) => {
-            // Always show success message regardless of response.error
-            toast({
-                title: "Success",
-                description: "Appointment booked successfully! Waiting for receptionist approval. Please proceed to reception and pay.",
-                variant: "default",
-                className: "bg-green-50 border-green-200 text-green-800 shadow-lg rounded-lg"
-            });
-
-            // Still handle errors if they exist
             if (response.error) {
+                // Handle API error
                 console.error("Appointment booking error:", response.error);
+                toast({
+                    title: "Booking Failed",
+                    description: typeof response.error === 'string' ? response.error : "Failed to book appointment. Please check your details and try again.",
+                    variant: "destructive"
+                });
             } else {
+                // We actually succeeded
                 queryClient.invalidateQueries({ queryKey: ["appointments", "patient", patient?.id] });
+
+                // Clear any previous patient error
+                setPatientError(null);
+
+                // Call onSuccess to switch tabs
                 onSuccess();
             }
         },
         onError: (error: any) => {
-            // Show success message even on error to avoid confusing the user
-            toast({
-                title: "Request Submitted",
-                description: "Your appointment request has been submitted! Waiting for receptionist approval. Please proceed to reception and pay.",
-                variant: "default",
-                className: "bg-green-50 border-green-200 text-green-800 shadow-lg rounded-lg"
-            });
-
             // Log error for debugging
-            console.error("Appointment booking error:", error.message || "Failed to book appointment");
+            console.error("Appointment booking exception:", error.message || "Failed to book appointment");
+
+            toast({
+                title: "Submission Error",
+                description: "There was a problem processing your request. Please check your internet connection or try again.",
+                variant: "destructive"
+            });
         }
     });
 
-    // Handle step navigation
+    // Handle step navigation with validation
     const nextStep = () => {
+        if (currentStep === 4) {
+            if (!scheduledDate || !scheduledTime) {
+                toast({
+                    title: "Missing Information",
+                    description: "Please select both a date and time for your appointment.",
+                    variant: "destructive"
+                });
+                return;
+            }
+        }
+        if (currentStep === 5) {
+            if (!selectedDoctor) {
+                toast({
+                    title: "Missing Information",
+                    description: "Please select a doctor to proceed.",
+                    variant: "destructive"
+                });
+                return;
+            }
+        }
         if (currentStep < totalSteps) {
             setCurrentStep(currentStep + 1);
         }
@@ -254,7 +274,7 @@ Additional Notes: ${additionalNotes || "None"}
                 try {
                     const { data, error } = await patientService.getByUserId(user.id);
                     if (data && !error) {
-                        patientId = data.id;
+                        patientId = data.id || data._id;
                         // Update the patient context
                         setPatient(data);
                     } else if (error) {
@@ -269,37 +289,48 @@ Additional Notes: ${additionalNotes || "None"}
 
         // If we still don't have a patient ID, bypass the error and show success
         if (!patientId) {
-            // Show success message instead of error
+            console.log("No patient ID found, completing flow with local success");
             toast({
                 title: "Success",
-                description: "Appointment booked successfully! Waiting for receptionist approval. Please proceed to reception and pay.",
+                description: "Appointment requested! Please complete your payment online or visit the nearest reception to finalize your booking. (Demo Mode: Patient profile not found)",
                 variant: "default",
-                className: "bg-green-50 border-green-200 text-green-800 shadow-lg rounded-lg"
+                className: "bg-blue-50 border-blue-200 text-blue-800 shadow-lg rounded-lg"
             });
-            
+
             // Clear any previous patient error
             setPatientError(null);
-            
-            // Call onSuccess to complete the flow
-            onSuccess();
+
+            // Call onSuccess to complete the flow after a short delay
+            setTimeout(() => {
+                onSuccess();
+            }, 1500);
             return;
         } else {
             // Clear any previous patient error
             setPatientError(null);
         }
 
-        const data: AppointmentData = {
-            patientId: patientId,
-            doctorId: selectedDoctor,
-            scheduledAt: scheduledAt.toISOString(),
-            status: "scheduled",
-            priority,
-            symptoms,
-            notes: medicalHistoryNotes
-        };
+        try {
+            const data: AppointmentData = {
+                patientId: patientId,
+                doctorId: selectedDoctor,
+                scheduledAt: scheduledAt.toISOString(),
+                status: "pending",
+                priority,
+                symptoms,
+                notes: medicalHistoryNotes
+            };
 
-        console.log("Submitting appointment data:", data);
-        createAppointmentMutation.mutate(data);
+            console.log("Submitting appointment data:", data);
+            createAppointmentMutation.mutate(data);
+        } catch (err: any) {
+            console.error("Submission crash:", err);
+            toast({
+                title: "Submission Error",
+                description: "There was a problem processing your request. Please check your internet connection or try again.",
+                variant: "destructive"
+            });
+        }
     };
 
     // Toggle condition selection
@@ -567,20 +598,48 @@ Additional Notes: ${additionalNotes || "None"}
                                     {doctors.filter(d => d.isOnline).map((doctor) => (
                                         <Card
                                             key={doctor.id}
-                                            className={`cursor-pointer ${selectedDoctor === doctor.id ? "border-blue-500 border-2" : "border-blue-200"} bg-white`}
+                                            className={`cursor-pointer group/doc overflow-hidden transition-all duration-300 ${selectedDoctor === doctor.id
+                                                ? "border-blue-600 ring-2 ring-blue-600/20 shadow-lg translate-x-1"
+                                                : "border-slate-100 hover:border-blue-300 hover:bg-slate-50 shadow-sm"
+                                                } bg-white rounded-2xl`}
                                             onClick={() => setSelectedDoctor(doctor.id)}
                                         >
-                                            <CardContent className="p-4">
-                                                <div className="flex items-center">
-                                                    <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center mr-3">
-                                                        <Stethoscope className="h-5 w-5 text-blue-600" />
+                                            <CardContent className="p-5">
+                                                <div className="flex items-center gap-5">
+                                                    {/* Profile Avatar */}
+                                                    <div className="relative flex-shrink-0">
+                                                        <div className={`absolute inset-0 bg-blue-600 rounded-2xl blur-md opacity-20 transition-opacity duration-300 ${selectedDoctor === doctor.id ? 'opacity-40' : 'group-hover/doc:opacity-30'}`} />
+                                                        <div className="relative w-16 h-16 rounded-2xl overflow-hidden border-2 border-white shadow-md">
+                                                            {doctor.image ? (
+                                                                <img
+                                                                    src={doctor.image}
+                                                                    alt={doctor.name}
+                                                                    className="w-full h-full object-cover group-hover/doc:scale-110 transition-transform duration-500"
+                                                                />
+                                                            ) : (
+                                                                <div className="w-full h-full bg-blue-50 flex items-center justify-center">
+                                                                    <Stethoscope className="h-6 w-6 text-blue-600" />
+                                                                </div>
+                                                            )}
+                                                        </div>
+                                                        <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-emerald-500 border-2 border-white rounded-full shadow-sm" />
                                                     </div>
-                                                    <div>
-                                                        <p className="font-medium text-blue-900">{doctor.name}</p>
-                                                        <p className="text-sm text-blue-700">{doctor.department} - {doctor.specialization}</p>
+
+                                                    <div className="flex-1 min-w-0">
+                                                        <p className={`font-black tracking-tight truncate transition-colors ${selectedDoctor === doctor.id ? 'text-blue-600' : 'text-slate-900'}`}>
+                                                            {doctor.name}
+                                                        </p>
+                                                        <div className="flex flex-col gap-0.5 mt-0.5">
+                                                            <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">{doctor.department}</p>
+                                                            <p className="text-[10px] font-medium text-slate-400">{doctor.specialization}</p>
+                                                        </div>
                                                     </div>
-                                                    <div className="ml-auto">
-                                                        <Badge variant="default" className="bg-green-500">Online</Badge>
+
+                                                    <div className="hidden sm:block">
+                                                        <Badge variant="outline" className={`rounded-xl px-2.5 py-1 text-[10px] font-black uppercase tracking-[0.1em] border-none ${selectedDoctor === doctor.id ? 'bg-blue-600 text-white' : 'bg-slate-100 text-slate-400'
+                                                            }`}>
+                                                            {selectedDoctor === doctor.id ? "Selected" : "Available"}
+                                                        </Badge>
                                                     </div>
                                                 </div>
                                             </CardContent>
@@ -599,13 +658,27 @@ Additional Notes: ${additionalNotes || "None"}
 
                         {/* Message to display after appointment booking */}
                         {selectedDoctor && scheduledDate && scheduledTime && (
-                            <div className="mt-6 p-4 bg-green-50 border border-green-200 rounded-lg">
+                            <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
                                 <div className="flex items-start">
-                                    <CheckCircle className="h-5 w-5 text-green-600 mt-0.5 mr-2 flex-shrink-0" />
+                                    <Clock className="h-5 w-5 text-blue-600 mt-0.5 mr-2 flex-shrink-0" />
                                     <div>
-                                        <p className="text-green-800 font-medium">Appointment Details Confirmed</p>
-                                        <p className="text-green-700 mt-1">
-                                            Appointment booked successfully! Waiting for receptionist approval. Please proceed to reception and pay.
+                                        <p className="text-blue-800 font-medium">Payment Required to Finalize</p>
+                                        <p className="text-blue-700 mt-1">
+                                            Your appointment will be listed as <span className="font-bold">Pending</span>. You can pay online or visit the reception to secure this slot.
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+
+                        {(!scheduledDate || !scheduledTime) && (
+                            <div className="mt-6 p-4 bg-amber-50 border border-amber-200 rounded-lg">
+                                <div className="flex items-start">
+                                    <AlertTriangle className="h-5 w-5 text-amber-600 mt-0.5 mr-2 flex-shrink-0" />
+                                    <div>
+                                        <p className="text-amber-800 font-medium">Incomplete Schedule</p>
+                                        <p className="text-amber-700 mt-1">
+                                            Please go back to the <span className="font-bold underline cursor-pointer" onClick={() => setCurrentStep(4)}>Schedule</span> step to select a date and time.
                                         </p>
                                     </div>
                                 </div>
@@ -681,10 +754,15 @@ Additional Notes: ${additionalNotes || "None"}
                         ) : (
                             <Button
                                 onClick={handleSubmit}
-                                disabled={!selectedDoctor || !scheduledDate || !scheduledTime}
-                                className="bg-green-600 hover:bg-green-700 text-white w-full sm:w-auto"
+                                disabled={!selectedDoctor || !scheduledDate || !scheduledTime || createAppointmentMutation.isPending}
+                                className="bg-green-600 hover:bg-green-700 text-white w-full sm:w-auto font-bold shadow-[0_10px_30px_rgba(22,163,74,0.3)] transition-all hover:scale-105 active:scale-95"
                             >
-                                Confirm Appointment
+                                {createAppointmentMutation.isPending ? (
+                                    <div className="flex items-center gap-2">
+                                        <div className="h-4 w-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                                        Processing...
+                                    </div>
+                                ) : "Confirm Appointment"}
                             </Button>
                         )}
                     </div>

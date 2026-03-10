@@ -696,7 +696,7 @@ function App() {
                   <Route
                     path="/billing"
                     element={
-                      <ProtectedRoute allowedRoles={["admin", "receptionist", "doctor"]}>
+                      <ProtectedRoute allowedRoles={["admin", "receptionist", "doctor", "patient"]}>
                         <BillsListPage />
                       </ProtectedRoute>
                     }
@@ -704,7 +704,7 @@ function App() {
                   <Route
                     path="/billing/:id"
                     element={
-                      <ProtectedRoute allowedRoles={["admin", "receptionist", "doctor"]}>
+                      <ProtectedRoute allowedRoles={["admin", "receptionist", "doctor", "patient"]}>
                         <BillDetailPage />
                       </ProtectedRoute>
                     }

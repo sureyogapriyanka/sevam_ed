@@ -9,7 +9,7 @@ import { Badge } from "../ui/badge";
 import { Progress } from "../ui/progress";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "../../lib/queryClient";
-import { Heart, Activity, Droplets, Moon, Calculator } from "lucide-react";
+import { Heart, Activity, Droplets, Moon, Calculator, Plus, Flame, ArrowUpRight, CheckCircle2 } from "lucide-react";
 import { useToast } from "../../hooks/use-toast";
 import { FitnessData } from "../../types/schema";
 import { fitnessDataService, patientService } from "../../services/api";
@@ -72,7 +72,7 @@ export default function FitnessTracker() {
         description: "Fitness data saved successfully!",
         className: "bg-green-50 border-green-200 text-green-800 shadow-lg rounded-lg"
       });
-      
+
       // Still handle errors if they exist
       if (response.error) {
         console.error("Fitness data save error:", response.error);
@@ -87,7 +87,7 @@ export default function FitnessTracker() {
         description: "Your fitness data has been submitted successfully!",
         className: "bg-green-50 border-green-200 text-green-800 shadow-lg rounded-lg"
       });
-      
+
       // Log error for debugging
       console.error("Fitness data save error:", error.message || "Failed to save fitness data");
     }
@@ -126,7 +126,7 @@ export default function FitnessTracker() {
         description: "BMI calculated and saved successfully!",
         className: "bg-green-50 border-green-200 text-green-800 shadow-lg rounded-lg"
       });
-      
+
       // Still handle errors if they exist
       if (response.error) {
         console.error("Patient update error:", response.error);
@@ -141,7 +141,7 @@ export default function FitnessTracker() {
         description: "Your BMI data has been submitted successfully!",
         className: "bg-green-50 border-green-200 text-green-800 shadow-lg rounded-lg"
       });
-      
+
       // Log error for debugging
       console.error("Patient update error:", error.message || "Failed to update patient data. Please make sure you are logged in and try again.");
     }
@@ -201,7 +201,8 @@ export default function FitnessTracker() {
   const latestData: FitnessData | {} = fitnessData[0] || {};
 
   // Type guard to check if latestData is FitnessData
-  const isFitnessData = (data: FitnessData | {}): data is FitnessData => {
+  const isFitnessData = (data: any): data is FitnessData => {
+    if (!data || typeof data !== 'object') return false;
     return 'id' in data;
   };
 
@@ -245,26 +246,50 @@ export default function FitnessTracker() {
     return "bg-muted-foreground";
   };
 
+  const handleQuickAddWater = () => {
+    const current = parseInt(fitnessForm.waterIntake) || 0;
+    setFitnessForm(prev => ({ ...prev, waterIntake: (current + 1).toString() }));
+    toast({
+      title: "Hydration Logged",
+      description: "+1 Glass of Water. Keep it up!",
+      className: "bg-blue-50 border-blue-200 text-blue-800 shadow-md"
+    });
+  };
+
   return (
-    <Card data-testid="fitness-tracker" className="border-2 border-blue-300 bg-white">
-      <CardHeader className="bg-blue-50">
-        <CardTitle className="flex items-center space-x-2 text-blue-900">
-          <Heart className="h-5 w-5 text-blue-600" />
-          <span>{t("fitness_tracker")}</span>
-        </CardTitle>
+    <Card data-testid="fitness-tracker" className="border border-slate-200 bg-white/50 backdrop-blur-xl rounded-[3rem] overflow-hidden shadow-sm relative group">
+      <div className="absolute top-0 right-0 w-64 h-64 bg-emerald-100/50 rounded-full blur-3xl -z-10 opacity-50 group-hover:bg-emerald-200/50 transition-colors duration-700" />
+      <CardHeader className="bg-transparent border-b border-slate-100 p-8 pb-6 relative z-10">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center space-x-4">
+            <div className="p-4 rounded-2xl bg-emerald-50 border border-emerald-100 group-hover:scale-110 transition-transform duration-500">
+              <Activity className="h-6 w-6 text-emerald-500" />
+            </div>
+            <div>
+              <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-1">Metabolic Monitor</p>
+              <CardTitle className="text-2xl font-black text-slate-900 tracking-tight">
+                Biometric Telemetry
+              </CardTitle>
+            </div>
+          </div>
+          <Badge variant="outline" className="text-sm font-bold bg-white text-emerald-600 border-emerald-200 px-4 py-1.5 rounded-full flex items-center shadow-sm">
+            <CheckCircle2 className="h-4 w-4 mr-2" /> Synced Today
+          </Badge>
+        </div>
       </CardHeader>
-      <CardContent className="pt-6">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <CardContent className="p-8 relative z-10">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           {/* BMI Calculator */}
-          <div className="space-y-4 p-4 rounded-lg border border-blue-200 bg-blue-50">
-            <h4 className="font-semibold text-blue-900 flex items-center">
-              <Calculator className="h-4 w-4 mr-2 text-blue-600" />
-              BMI Calculator
+          <div className="space-y-6 p-8 rounded-[2.5rem] border border-blue-100 bg-gradient-to-br from-blue-50/50 to-indigo-50/50 relative overflow-hidden group/bmi">
+            <div className="absolute -right-8 -top-8 w-32 h-32 bg-blue-100 rounded-full blur-2xl opacity-50 group-hover/bmi:scale-150 transition-transform duration-700" />
+            <h4 className="font-black text-blue-900 flex items-center text-lg relative z-10">
+              <Calculator className="h-5 w-5 mr-3 text-blue-600" />
+              BMI Assessment
             </h4>
 
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <Label htmlFor="height" className="text-blue-800">Height (cm)</Label>
+            <div className="grid grid-cols-2 gap-6 relative z-10">
+              <div className="space-y-2">
+                <Label htmlFor="height" className="text-[10px] font-black text-blue-400 uppercase tracking-widest">Height (cm)</Label>
                 <Input
                   id="height"
                   name="height"
@@ -272,12 +297,11 @@ export default function FitnessTracker() {
                   value={fitnessForm.height}
                   onChange={handleInputChange}
                   placeholder="175"
-                  data-testid="input-height"
-                  className="border-blue-300 focus:border-blue-500 focus:ring-blue-500"
+                  className="border-white bg-white/80 focus:border-blue-400 focus:ring-blue-400 rounded-2xl h-12 text-lg font-bold text-slate-700 shadow-sm"
                 />
               </div>
-              <div>
-                <Label htmlFor="weight" className="text-blue-800">Weight (kg)</Label>
+              <div className="space-y-2">
+                <Label htmlFor="weight" className="text-[10px] font-black text-blue-400 uppercase tracking-widest">Weight (kg)</Label>
                 <Input
                   id="weight"
                   name="weight"
@@ -285,8 +309,7 @@ export default function FitnessTracker() {
                   value={fitnessForm.weight}
                   onChange={handleInputChange}
                   placeholder="70"
-                  data-testid="input-weight"
-                  className="border-blue-300 focus:border-blue-500 focus:ring-blue-500"
+                  className="border-white bg-white/80 focus:border-blue-400 focus:ring-blue-400 rounded-2xl h-12 text-lg font-bold text-slate-700 shadow-sm"
                 />
               </div>
             </div>
@@ -294,17 +317,16 @@ export default function FitnessTracker() {
             <Button
               onClick={calculateBMI}
               disabled={!fitnessForm.height || !fitnessForm.weight}
-              data-testid="calculate-bmi"
-              className="bg-blue-600 hover:bg-blue-700 text-white"
+              className="w-full bg-blue-600 hover:bg-blue-700 text-white rounded-2xl h-12 font-bold shadow-lg shadow-blue-500/20 transition-all relative z-10"
             >
-              {t("calculate_bmi")}
+              Analyze Biomarkers
             </Button>
 
             {bmi && (
-              <div className="text-center p-4 bg-white rounded-lg border border-blue-300">
-                <p className="text-2xl font-bold text-blue-800">{bmi.toFixed(1)}</p>
-                <p className="text-blue-700">{t("bmi_score")}</p>
-                <Badge variant={bmiCategory === "Normal Weight" ? "default" : "secondary"} className="mt-2 bg-blue-500">
+              <div className="text-center p-6 bg-white rounded-3xl border border-blue-100 shadow-sm relative z-10 animate-in zoom-in-95 duration-300">
+                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Body Mass Index</p>
+                <p className="text-4xl font-black text-blue-900 tracking-tighter mb-2">{bmi.toFixed(1)}</p>
+                <Badge variant={bmiCategory === "Normal Weight" ? "default" : "secondary"} className={`px-4 py-1.5 rounded-full font-bold uppercase tracking-widest text-[10px] ${bmiCategory === "Normal Weight" ? 'bg-emerald-500 text-white' : 'bg-amber-500 text-white'}`}>
                   {bmiCategory}
                 </Badge>
               </div>
@@ -312,12 +334,21 @@ export default function FitnessTracker() {
           </div>
 
           {/* Daily Tracking */}
-          <div className="space-y-4 p-4 rounded-lg border border-cyan-200 bg-cyan-50">
-            <h4 className="font-semibold text-cyan-900">Today's Activity</h4>
+          <div className="space-y-6 p-8 rounded-[2.5rem] border border-cyan-100 bg-gradient-to-br from-cyan-50/50 to-teal-50/50 relative overflow-hidden group/daily">
+            <div className="absolute -right-8 -top-8 w-32 h-32 bg-cyan-100 rounded-full blur-2xl opacity-50 group-hover/daily:scale-150 transition-transform duration-700" />
+            <h4 className="font-black text-cyan-900 flex items-center text-lg relative z-10">
+              <Flame className="h-5 w-5 mr-3 text-cyan-600" />
+              Daily Milestones
+            </h4>
 
-            <div className="space-y-3">
-              <div>
-                <Label htmlFor="steps" className="text-cyan-800">Steps Today</Label>
+            <div className="space-y-5 relative z-10">
+              <div className="space-y-2">
+                <div className="flex justify-between items-end">
+                  <Label htmlFor="steps" className="text-[10px] font-black text-cyan-600 uppercase tracking-widest">Movement (Steps)</Label>
+                  {isFitnessData(latestData) && latestData.steps && (
+                    <span className="text-xs font-bold text-cyan-700 bg-white px-2 py-0.5 rounded-full border border-cyan-100">{latestData.steps.toLocaleString()} / 10K</span>
+                  )}
+                </div>
                 <Input
                   id="steps"
                   name="steps"
@@ -325,53 +356,57 @@ export default function FitnessTracker() {
                   value={fitnessForm.steps}
                   onChange={handleInputChange}
                   placeholder="8000"
-                  data-testid="input-steps"
-                  className="border-cyan-300 focus:border-cyan-500 focus:ring-cyan-500"
+                  className="border-white bg-white/80 focus:border-cyan-400 focus:ring-cyan-400 rounded-2xl h-12 text-lg font-bold text-slate-700 shadow-sm"
                 />
                 {isFitnessData(latestData) && latestData.steps && (
                   <div className="mt-2">
-                    <Progress value={(latestData.steps / 10000) * 100} className="w-full" />
-                    <p className="text-sm text-cyan-700">{latestData.steps}/10,000 steps</p>
+                    <Progress value={(latestData.steps / 10000) * 100} className="h-2 bg-white" indicatorColor="bg-gradient-to-r from-cyan-400 to-teal-400" />
                   </div>
                 )}
               </div>
 
-              <div>
-                <Label htmlFor="waterIntake" className="text-cyan-800">
-                  <Droplets className="h-4 w-4 inline mr-1 text-cyan-600" />
-                  Water Intake (glasses)
-                </Label>
-                <Input
-                  id="waterIntake"
-                  name="waterIntake"
-                  type="number"
-                  value={fitnessForm.waterIntake}
-                  onChange={handleInputChange}
-                  placeholder="8"
-                  data-testid="input-water"
-                  className="border-cyan-300 focus:border-cyan-500 focus:ring-cyan-500"
-                />
+              <div className="space-y-2">
+                <div className="flex justify-between items-end">
+                  <Label htmlFor="waterIntake" className="text-[10px] font-black text-blue-500 uppercase tracking-widest flex items-center">
+                    <Droplets className="h-3 w-3 mr-1" /> Hydration (Glasses)
+                  </Label>
+                  {isFitnessData(latestData) && latestData.waterIntake && (
+                    <span className="text-xs font-bold text-blue-700 bg-white px-2 py-0.5 rounded-full border border-blue-100">{latestData.waterIntake} / 8</span>
+                  )}
+                </div>
+                <div className="flex space-x-2">
+                  <Input
+                    id="waterIntake"
+                    name="waterIntake"
+                    type="number"
+                    value={fitnessForm.waterIntake}
+                    onChange={handleInputChange}
+                    placeholder="8"
+                    className="border-white bg-white/80 focus:border-blue-400 focus:ring-blue-400 rounded-2xl h-12 text-lg font-bold text-slate-700 shadow-sm flex-1"
+                  />
+                  <Button type="button" onClick={handleQuickAddWater} variant="outline" className="h-12 w-12 rounded-2xl bg-white border-white shadow-sm hover:border-blue-300 hover:text-blue-600 p-0 text-blue-500">
+                    <Plus className="h-5 w-5" />
+                  </Button>
+                </div>
                 {isFitnessData(latestData) && latestData.waterIntake && (
                   <div className="mt-2">
-                    <Progress value={(latestData.waterIntake / 8) * 100} className="w-full" />
-                    <p className="text-sm text-cyan-700">{latestData.waterIntake}/8 glasses</p>
+                    <Progress value={(latestData.waterIntake / 8) * 100} className="h-2 bg-white" indicatorColor="bg-gradient-to-r from-blue-400 to-cyan-400" />
                   </div>
                 )}
               </div>
 
-              <div>
-                <Label htmlFor="sleepHours" className="text-cyan-800">
-                  <Moon className="h-4 w-4 inline mr-1 text-cyan-600" />
-                  Sleep (hours)
+              <div className="space-y-2">
+                <Label htmlFor="sleepHours" className="text-[10px] font-black text-indigo-400 uppercase tracking-widest flex items-center">
+                  <Moon className="h-3 w-3 mr-1" /> Sleep Cycle (Hours)
                 </Label>
                 <Input
                   id="sleepHours"
                   name="sleepHours"
+                  type="number"
                   value={fitnessForm.sleepHours}
                   onChange={handleInputChange}
                   placeholder="8"
-                  data-testid="input-sleep"
-                  className="border-cyan-300 focus:border-cyan-500 focus:ring-cyan-500"
+                  className="border-white bg-white/80 focus:border-indigo-400 focus:ring-indigo-400 rounded-2xl h-12 text-lg font-bold text-slate-700 shadow-sm"
                 />
               </div>
             </div>
@@ -379,11 +414,11 @@ export default function FitnessTracker() {
         </div>
 
         {/* Vitals Section */}
-        <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-4 p-4 rounded-lg border border-green-200 bg-green-50">
-          <div>
-            <Label htmlFor="heartRate" className="text-green-800">
-              <Heart className="h-4 w-4 inline mr-1 text-green-600" />
-              Heart Rate (bpm)
+        <div className="mt-8 grid grid-cols-1 md:grid-cols-2 gap-8">
+          <div className="p-8 rounded-[2.5rem] border border-rose-100 bg-gradient-to-br from-rose-50/50 to-pink-50/50 space-y-4">
+            <Label htmlFor="heartRate" className="text-[10px] font-black text-rose-500 uppercase tracking-widest flex items-center">
+              <div className="bg-white p-2 rounded-xl mr-3 shadow-sm text-rose-500"><Heart className="h-4 w-4" /></div>
+              Cardiac Rhythm (bpm)
             </Label>
             <Input
               id="heartRate"
@@ -392,15 +427,14 @@ export default function FitnessTracker() {
               value={fitnessForm.heartRate}
               onChange={handleInputChange}
               placeholder="72"
-              data-testid="input-heart-rate"
-              className="border-green-300 focus:border-green-500 focus:ring-green-500"
+              className="border-white bg-white/80 focus:border-rose-400 focus:ring-rose-400 rounded-2xl h-14 text-xl font-bold text-slate-700 shadow-sm"
             />
           </div>
 
-          <div>
-            <Label htmlFor="bloodPressure" className="text-green-800">
-              <Activity className="h-4 w-4 inline mr-1 text-green-600" />
-              Blood Pressure
+          <div className="p-8 rounded-[2.5rem] border border-violet-100 bg-gradient-to-br from-violet-50/50 to-purple-50/50 space-y-4">
+            <Label htmlFor="bloodPressure" className="text-[10px] font-black text-violet-500 uppercase tracking-widest flex items-center">
+              <div className="bg-white p-2 rounded-xl mr-3 shadow-sm text-violet-500"><Activity className="h-4 w-4" /></div>
+              Vascular Pressure
             </Label>
             <Input
               id="bloodPressure"
@@ -408,81 +442,87 @@ export default function FitnessTracker() {
               value={fitnessForm.bloodPressure}
               onChange={handleInputChange}
               placeholder="120/80"
-              data-testid="input-blood-pressure"
-              className="border-green-300 focus:border-green-500 focus:ring-green-500"
+              className="border-white bg-white/80 focus:border-violet-400 focus:ring-violet-400 rounded-2xl h-14 text-xl font-bold text-slate-700 shadow-sm"
             />
           </div>
         </div>
 
         {/* Exercise & Notes */}
-        <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4 p-4 rounded-lg border border-amber-200 bg-amber-50">
-          <div>
-            <Label htmlFor="exerciseMinutes" className="text-amber-800">Exercise (minutes)</Label>
+        <div className="mt-8 grid grid-cols-1 md:grid-cols-2 gap-8">
+          <div className="p-8 rounded-[2.5rem] border border-amber-100 bg-gradient-to-br from-amber-50/50 to-orange-50/50 space-y-4">
+            <Label htmlFor="exerciseMinutes" className="text-[10px] font-black text-amber-600 uppercase tracking-widest flex items-center">
+              <div className="bg-white p-2 rounded-xl mr-3 shadow-sm text-amber-500"><Zap className="h-4 w-4" /></div>
+              Active Exertion (minutes)
+            </Label>
             <Input
               id="exerciseMinutes"
               name="exerciseMinutes"
               type="number"
               value={fitnessForm.exerciseMinutes}
               onChange={handleInputChange}
-              placeholder="30"
-              data-testid="input-exercise"
-              className="border-amber-300 focus:border-amber-500 focus:ring-amber-500"
+              placeholder="45"
+              className="border-white bg-white/80 focus:border-amber-400 focus:ring-amber-400 rounded-2xl h-14 text-xl font-bold text-slate-700 shadow-sm"
             />
           </div>
 
-          <div>
-            <Label htmlFor="notes" className="text-amber-800">Notes</Label>
+          <div className="p-8 rounded-[2.5rem] border border-slate-100 bg-slate-50/50 space-y-4">
+            <Label htmlFor="notes" className="text-[10px] font-black text-slate-500 uppercase tracking-widest flex items-center">
+              Bio-Subjective Notes
+            </Label>
             <Input
               id="notes"
               name="notes"
               value={fitnessForm.notes}
               onChange={handleInputChange}
-              placeholder="How are you feeling today?"
-              data-testid="input-notes"
-              className="border-amber-300 focus:border-amber-500 focus:ring-amber-500"
+              placeholder="e.g. Felt highly energetic post-workout"
+              className="border-white bg-white focus:border-slate-400 focus:ring-slate-400 rounded-2xl h-14 text-sm font-medium text-slate-700 shadow-sm"
             />
           </div>
         </div>
 
         {/* Save Button */}
-        <div className="mt-6">
+        <div className="mt-10">
           <Button
             onClick={handleSaveFitnessData}
             disabled={saveFitnessDataMutation.isPending}
-            className="w-full bg-green-600 hover:bg-green-700 text-white"
-            data-testid="save-fitness-data"
+            className="w-full bg-emerald-600 hover:bg-emerald-700 text-white rounded-[2rem] h-16 text-lg font-black tracking-wide shadow-xl shadow-emerald-500/20 transition-all hover:scale-[1.02]"
           >
-            {saveFitnessDataMutation.isPending ? "Saving..." : "Save Today's Data"}
+            {saveFitnessDataMutation.isPending ? "Syncing Telemetry..." : "Commit Telemetry Data"}
           </Button>
         </div>
 
         {/* Latest Data Display */}
         {Object.keys(latestData).length > 0 && (
-          <div className="mt-6 p-4 bg-purple-50 rounded-lg border border-purple-200">
-            <h5 className="font-medium text-purple-900 mb-3">Latest Entry</h5>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+          <div className="mt-10 p-8 bg-slate-50/80 backdrop-blur-sm rounded-[2.5rem] border border-slate-100">
+            <div className="flex justify-between items-center mb-6">
+              <h5 className="font-black text-slate-900 text-lg">Previous Telemetry</h5>
+              <Badge variant="outline" className="bg-white px-3 py-1 rounded-full text-[10px] uppercase font-black tracking-widest text-slate-400 border-slate-200">
+                Latest Record
+              </Badge>
+            </div>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-6 text-sm">
               {isFitnessData(latestData) && latestData.steps && (
-                <div>
-                  <span className="text-purple-800">Steps:</span>
-                  <span className="font-medium ml-2 text-purple-900">{latestData.steps.toLocaleString()}</span>
+                <div className="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm">
+                  <span className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Steps</span>
+                  <span className="font-black text-slate-900 text-xl">{latestData.steps.toLocaleString()}</span>
                 </div>
               )}
               {isFitnessData(latestData) && latestData.waterIntake && (
-                <div>
-                  <span className="text-purple-800">Water:</span>
-                  <span className="font-medium ml-2 text-purple-900">{latestData.waterIntake} glasses</span>
+                <div className="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm">
+                  <span className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Water</span>
+                  <span className="font-black text-blue-600 text-xl">{latestData.waterIntake} <span className="text-xs">gl</span></span>
                 </div>
               )}
               {isFitnessData(latestData) && latestData.sleepHours && (
-                <div>
-                  <span className="text-purple-800">Sleep:</span>
-                  <span className="font-medium ml-2 text-purple-900">{latestData.sleepHours} hours</span>
+                <div className="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm">
+                  <span className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Sleep</span>
+                  <span className="font-black text-indigo-600 text-xl">{latestData.sleepHours} <span className="text-xs">hr</span></span>
                 </div>
               )}
               {isFitnessData(latestData) && latestData.heartRate && (
-                <div>
-                  <span className="text-purple-800">Heart Rate:</span>
-                  <span className="font-medium ml-2 text-purple-900">{latestData.heartRate} bpm</span>
+                <div className="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm">
+                  <span className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Heart Rate</span>
+                  <span className="font-black text-rose-500 text-xl">{latestData.heartRate} <span className="text-xs">bpm</span></span>
                 </div>
               )}
             </div>

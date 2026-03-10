@@ -106,314 +106,281 @@ export default function RegisterPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-blue-900 via-blue-100 to-blue-900 flex items-center justify-center p-4 relative overflow-hidden" data-testid="register-page">
-      {/* Background Pattern */}
-      <div className="absolute inset-0 bg-gradient-to-r from-slate-600/10 to-gray-600/10 backdrop-blur-3xl"></div>
-      <div className="absolute inset-0 opacity-5">
-        <div className="w-full h-full" style={{
-          backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.1'%3E%3Ccircle cx='30' cy='30' r='4'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
-          backgroundSize: '60px 60px'
-        }}></div>
-      </div>
+    <div className="min-h-screen bg-gradient-to-br from-slate-100 to-slate-200 flex items-center justify-center p-4 md:p-6 relative font-sans overflow-hidden" data-testid="register-page">
+      {/* Soft Ambient Background Elements */}
+      <div className="absolute top-[-10%] right-[-10%] w-[40%] h-[40%] bg-blue-100 rounded-full blur-[120px] opacity-50" />
+      <div className="absolute bottom-[-10%] left-[-10%] w-[30%] h-[30%] bg-indigo-50 rounded-full blur-[100px] opacity-40" />
 
-      <div className="w-full max-w-4xl relative z-10">
-        {/* Header */}
-        <div className="text-center mb-8">
-          <div className="flex justify-center mb-6">
-            <div className="w-20 h-20 bg-gradient-to-br from-slate-600 via-gray-500 to-slate-600 rounded-full flex items-center justify-center shadow-2xl border-4 border-white/20">
-              <img src="/sevamed logo.png" alt="SevaMed Logo" className="w-12 h-12 object-contain" />
-            </div>
-          </div>
-          <div className="bg-gradient-to-r from-blue-700 to-blue-800 backdrop-blur-md rounded-xl p-6 shadow-2xl border-2 border-blue-900/50 relative z-20" style={{ boxShadow: '0 20px 40px rgba(0,0,0,0.25)' }}>
-            <h1 className="text-5xl font-bold text-white mb-3">
-              {t("sevamed_hms")}
-            </h1>
-            <p className="text-white text-2xl font-bold mb-2">🏥 PATIENT REGISTRATION</p>
-            <p className="text-blue-100 text-lg font-semibold">Create Your Healthcare Account</p>
+      <div className="w-full max-w-4xl flex flex-col items-center gap-6 relative z-10">
+        {/* Branding */}
+        <div className="flex flex-col items-center gap-3 mb-1">
+          <div className="w-10 h-10 md:w-12 md:h-12 bg-white rounded-xl md:rounded-2xl shadow-xl flex items-center justify-center border border-slate-100 transform -rotate-3 hover:rotate-0 transition-transform duration-500">
+            <img src="/sevamed logo.png" alt="SevaMed Logo" className="w-6 h-6 md:w-8 md:h-8 object-contain" />
           </div>
         </div>
 
-        <Card className="shadow-2xl border-2 border-blue-400/30 bg-white/95 backdrop-blur-sm">
-          <CardHeader className="bg-gradient-to-r from-blue-700 to-blue-800 text-white rounded-t-lg">
-            <CardTitle className="text-center text-xl flex items-center justify-center space-x-2">
-              <User className="h-6 w-6" />
-              <span>Patient Registration</span>
-            </CardTitle>
-            <div className="flex justify-center mt-4">
-              <div className="w-48">
-                <LanguageSelector />
-              </div>
+        {/* Main Card */}
+        <div className="w-full bg-white rounded-[1.2rem] md:rounded-[2.5rem] shadow-[0_10px_20px_-8px_rgba(0,0,0,0.1)] md:shadow-[0_20px_40px_-10px_rgba(0,0,0,0.15)] border border-slate-200 flex flex-col overflow-hidden">
+          {/* Blue Header Section */}
+          <div className="bg-gradient-to-r from-blue-700 to-indigo-800 p-4 pb-8 md:p-6 md:pt-8 md:pb-10 relative">
+            <div className="absolute top-3 right-3 md:right-6">
+              <LanguageSelector />
             </div>
-          </CardHeader>
+            <div className="flex flex-col items-center justify-center gap-1.5 text-white">
+              <div className="flex items-center gap-2">
+                <Heart className="h-4 w-4 md:h-5 md:w-5 opacity-80" />
+                <h1 className="text-xl md:text-2xl font-black uppercase tracking-tight">{t("sevamed_hms")}</h1>
+              </div>
+              <p className="text-blue-100 font-bold text-[9px] md:text-[10px] uppercase tracking-[0.2em] md:tracking-[0.3em]">Patient Registration</p>
+            </div>
+          </div>
 
-          <CardContent className="p-6">
-            {error && (
-              <Alert variant="destructive" className="mb-4">
-                <AlertCircle className="h-4 w-4" />
-                <AlertDescription>{error}</AlertDescription>
-              </Alert>
-            )}
+          {/* Content Section */}
+          <div className="flex flex-col lg:flex-row p-3 pt-6 md:p-8 lg:p-10 gap-5 lg:gap-10 mt-[-20px] md:mt-[-30px] bg-white rounded-t-[1.2rem] md:rounded-[2.5rem]">
+            {/* Column 1: Form */}
+            <div className="flex-1 space-y-4 md:space-y-6">
+              {error && (
+                <Alert variant="destructive" className="rounded-3xl border-rose-100 bg-rose-50 text-rose-600 border-2">
+                  <AlertCircle className="h-4 w-4" />
+                  <AlertDescription className="font-bold">{error}</AlertDescription>
+                </Alert>
+              )}
 
-            {/* Two-column layout */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-              {/* Registration Form */}
-              <div>
-                <form onSubmit={handleSubmit} className="space-y-4">
-                  <div className="grid grid-cols-1 gap-4">
-                    <div>
-                      <Label htmlFor="name" className="text-slate-900 font-semibold">Full Name *</Label>
-                      <Input
-                        id="name"
-                        name="name"
-                        value={formData.name}
-                        onChange={handleChange}
-                        placeholder="Enter your full name"
-                        required
-                        className="border-slate-300 focus:border-slate-500 bg-white text-slate-900 placeholder-slate-400 h-14 text-lg"
-                        data-testid="input-name"
-                      />
-                    </div>
 
-                    <div>
-                      <Label htmlFor="username" className="text-slate-900 font-semibold">Username *</Label>
-                      <Input
-                        id="username"
-                        name="username"
-                        value={formData.username}
-                        onChange={handleChange}
-                        placeholder="Choose a username"
-                        required
-                        className="border-slate-300 focus:border-slate-500 bg-white text-slate-900 placeholder-slate-400 h-14 text-lg"
-                        data-testid="input-username"
-                      />
-                    </div>
+              <form onSubmit={handleSubmit} className="space-y-6">
+                <div className="space-y-1 md:space-y-1.5">
+                  <Label className="ml-4 md:ml-5 text-[8px] md:text-[9px] font-extrabold text-slate-400 uppercase tracking-widest">Full Name *</Label>
+                  <Input
+                    id="name"
+                    name="name"
+                    value={formData.name}
+                    onChange={handleChange}
+                    placeholder="John Doe"
+                    required
+                    className="h-10 md:h-12 rounded-full border-2 border-slate-100 bg-slate-50/50 focus:bg-white focus:border-indigo-500 transition-all font-bold text-xs md:text-sm px-7 md:px-8 shadow-sm"
+                    data-testid="input-name"
+                  />
+                </div>
 
-                    <div>
-                      <Label htmlFor="password" className="text-slate-900 font-semibold">Password *</Label>
-                      <Input
-                        id="password"
-                        name="password"
-                        type="password"
-                        value={formData.password}
-                        onChange={handleChange}
-                        placeholder="Create a password"
-                        required
-                        className="border-slate-300 focus:border-slate-500 bg-white text-slate-900 placeholder-slate-400 h-14 text-lg"
-                        data-testid="input-password"
-                      />
-                    </div>
+                <div className="space-y-1 md:space-y-1.5">
+                  <Label className="ml-4 md:ml-5 text-[8px] md:text-[9px] font-extrabold text-slate-400 uppercase tracking-widest">Username *</Label>
+                  <Input
+                    id="username"
+                    name="username"
+                    value={formData.username}
+                    onChange={handleChange}
+                    placeholder="johndoe"
+                    required
+                    className="h-10 md:h-12 rounded-full border-2 border-slate-100 bg-slate-50/50 focus:bg-white focus:border-indigo-500 transition-all font-bold text-xs md:text-sm px-7 md:px-8 shadow-sm"
+                    data-testid="input-username"
+                  />
+                </div>
 
-                    <div>
-                      <Label htmlFor="email" className="text-slate-900 font-semibold">Email Address</Label>
-                      <Input
-                        id="email"
-                        name="email"
-                        type="email"
-                        value={formData.email}
-                        onChange={handleChange}
-                        placeholder="Enter your email"
-                        className="border-slate-300 focus:border-slate-500 bg-white text-slate-900 placeholder-slate-400 h-14 text-lg"
-                        data-testid="input-email"
-                      />
-                    </div>
+                <div className="space-y-1 md:space-y-1.5">
+                  <Label className="ml-4 md:ml-5 text-[8px] md:text-[9px] font-extrabold text-slate-400 uppercase tracking-widest">Password *</Label>
+                  <Input
+                    id="password"
+                    name="password"
+                    type="password"
+                    value={formData.password}
+                    onChange={handleChange}
+                    placeholder="••••••••"
+                    required
+                    className="h-10 md:h-12 rounded-full border-2 border-slate-100 bg-slate-50/50 focus:bg-white focus:border-indigo-500 transition-all font-bold text-xs md:text-sm px-7 md:px-8 shadow-sm"
+                    data-testid="input-password"
+                  />
+                </div>
 
-                    <div>
-                      <Label htmlFor="phone" className="text-slate-900 font-semibold">Phone Number</Label>
-                      <Input
-                        id="phone"
-                        name="phone"
-                        value={formData.phone}
-                        onChange={handleChange}
-                        placeholder="Enter your phone number"
-                        className="border-slate-300 focus:border-slate-500 bg-white text-slate-900 placeholder-slate-400 h-14 text-lg"
-                        data-testid="input-phone"
-                      />
-                    </div>
+                <div className="space-y-1 md:space-y-1.5">
+                  <Label className="ml-4 md:ml-5 text-[8px] md:text-[9px] font-extrabold text-slate-400 uppercase tracking-widest">Email Address</Label>
+                  <Input
+                    id="email"
+                    name="email"
+                    type="email"
+                    value={formData.email}
+                    onChange={handleChange}
+                    placeholder="john@example.com"
+                    className="h-10 md:h-12 rounded-full border-2 border-slate-100 bg-slate-50/50 focus:bg-white focus:border-indigo-500 transition-all font-bold text-xs md:text-sm px-7 md:px-8 shadow-sm"
+                    data-testid="input-email"
+                  />
+                </div>
 
-                    <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <Label htmlFor="age" className="text-slate-900 font-semibold">Age</Label>
-                        <Input
-                          id="age"
-                          name="age"
-                          type="number"
-                          value={formData.age}
-                          onChange={handleChange}
-                          placeholder="Enter your age"
-                          className="border-slate-300 focus:border-slate-500 bg-white text-slate-900 placeholder-slate-400 h-14 text-lg"
-                          data-testid="input-age"
-                        />
-                      </div>
+                <div className="space-y-1 md:space-y-1.5">
+                  <Label className="ml-4 md:ml-5 text-[8px] md:text-[9px] font-extrabold text-slate-400 uppercase tracking-widest">Phone Number</Label>
+                  <Input
+                    id="phone"
+                    name="phone"
+                    value={formData.phone}
+                    onChange={handleChange}
+                    placeholder="+91 00000 00000"
+                    className="h-10 md:h-12 rounded-full border-2 border-slate-100 bg-slate-50/50 focus:bg-white focus:border-indigo-500 transition-all font-bold text-xs md:text-sm px-7 md:px-8 shadow-sm"
+                    data-testid="input-phone"
+                  />
+                </div>
 
-                      <div>
-                        <Label htmlFor="gender" className="text-slate-900 font-semibold">Gender</Label>
-                        <Select name="gender" value={formData.gender} onValueChange={(value) => handleSelectChange("gender", value)}>
-                          <SelectTrigger className="h-14 text-lg bg-white">
-                            <SelectValue placeholder="Select gender" />
-                          </SelectTrigger>
-                          <SelectContent className="bg-white">
-                            <SelectItem value="Male">Male</SelectItem>
-                            <SelectItem value="Female">Female</SelectItem>
-                            <SelectItem value="Other">Other</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
-                    </div>
-
-                    <div>
-                      <Label htmlFor="bloodGroup" className="text-slate-900 font-semibold">Blood Group</Label>
-                      <Select name="bloodGroup" value={formData.bloodGroup} onValueChange={(value) => handleSelectChange("bloodGroup", value)}>
-                        <SelectTrigger className="h-14 text-lg bg-white">
-                          <SelectValue placeholder="Select blood group" />
-                        </SelectTrigger>
-                        <SelectContent className="bg-white">
-                          <SelectItem value="A+">A+</SelectItem>
-                          <SelectItem value="A-">A-</SelectItem>
-                          <SelectItem value="B+">B+</SelectItem>
-                          <SelectItem value="B-">B-</SelectItem>
-                          <SelectItem value="AB+">AB+</SelectItem>
-                          <SelectItem value="AB-">AB-</SelectItem>
-                          <SelectItem value="O+">O+</SelectItem>
-                          <SelectItem value="O-">O-</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-
-                    <div>
-                      <Label htmlFor="address" className="text-slate-900 font-semibold">Address</Label>
-                      <Input
-                        id="address"
-                        name="address"
-                        value={formData.address}
-                        onChange={handleChange}
-                        placeholder="Enter your address"
-                        className="border-slate-300 focus:border-slate-500 bg-white text-slate-900 placeholder-slate-400 h-14 text-lg"
-                        data-testid="input-address"
-                      />
-                    </div>
-
-                    <div>
-                      <Label className="text-slate-900 font-semibold">Profile Photo</Label>
-                      <div className="flex items-center space-x-4">
-                        <Button
-                          type="button"
-                          variant="outline"
-                          onClick={triggerFileInput}
-                          className="flex items-center space-x-2 h-14 text-lg border-slate-300 text-slate-700 hover:bg-slate-100"
-                        >
-                          <Upload className="h-5 w-5" />
-                          <span>Upload Photo</span>
-                        </Button>
-                        <input
-                          type="file"
-                          ref={fileInputRef}
-                          onChange={handleImageUpload}
-                          accept="image/*"
-                          className="hidden"
-                        />
-                        {previewImage && (
-                          <div className="w-12 h-12 rounded-full overflow-hidden border-2 border-blue-400">
-                            <img
-                              src={previewImage}
-                              alt="Preview"
-                              className="w-full h-full object-cover"
-                            />
-                          </div>
-                        )}
-                      </div>
-                      <p className="text-xs text-slate-500 mt-1">Upload a clear photo of yourself (JPG, PNG, max 5MB)</p>
-                    </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-1 md:space-y-1.5">
+                    <Label className="ml-4 md:ml-5 text-[8px] md:text-[9px] font-extrabold text-slate-400 uppercase tracking-widest">Age</Label>
+                    <Input
+                      id="age"
+                      name="age"
+                      type="number"
+                      value={formData.age}
+                      onChange={handleChange}
+                      placeholder="25"
+                      className="h-10 md:h-12 rounded-full border-2 border-slate-100 bg-slate-50/50 focus:bg-white focus:border-indigo-500 transition-all font-bold text-xs md:text-sm px-7 md:px-8 shadow-sm"
+                      data-testid="input-age"
+                    />
                   </div>
 
-                  <Button
-                    type="submit"
-                    className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-lg transition-all duration-300 transform hover:scale-105 h-14 text-lg"
-                    disabled={isLoading}
-                    data-testid="button-register"
-                  >
-                    {isLoading ? (
-                      <div className="flex items-center space-x-2">
-                        <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
-                        <span>Registering...</span>
-                      </div>
-                    ) : (
-                      "Create Account"
-                    )}
-                  </Button>
-                </form>
-              </div>
+                  <div className="space-y-1 md:space-y-1.5">
+                    <Label className="ml-4 md:ml-5 text-[8px] md:text-[9px] font-extrabold text-slate-400 uppercase tracking-widest">Gender</Label>
+                    <Select name="gender" value={formData.gender} onValueChange={(value) => handleSelectChange("gender", value)}>
+                      <SelectTrigger className="h-10 md:h-12 rounded-full border-2 border-slate-100 bg-slate-50/50 focus:bg-white focus:border-indigo-500 transition-all font-bold text-[10px] md:text-xs px-7 md:px-8 shadow-sm uppercase tracking-widest">
+                        <SelectValue placeholder="Gender" />
+                      </SelectTrigger>
+                      <SelectContent className="bg-white rounded-2xl border-2 border-slate-100">
+                        <SelectItem value="Male" className="font-bold text-[10px] md:text-xs uppercase tracking-widest">Male</SelectItem>
+                        <SelectItem value="Female" className="font-bold text-[10px] md:text-xs uppercase tracking-widest">Female</SelectItem>
+                        <SelectItem value="Other" className="font-bold text-[10px] md:text-xs uppercase tracking-widest">Other</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
 
-              {/* Profile Preview */}
-              <div className="flex flex-col items-center justify-center">
-                <div className="w-full max-w-sm">
-                  <div className="bg-gradient-to-br from-white/90 to-blue-50/80 rounded-2xl p-6 shadow-xl border border-blue-200/50 backdrop-blur-sm">
-                    <div className="flex flex-col items-center">
-                      <div className="w-48 h-48 rounded-full overflow-hidden border-4 border-blue-400 shadow-lg mb-6">
-                        {previewImage ? (
-                          <img
-                            src={previewImage}
-                            alt="Profile Preview"
-                            className="w-full h-full object-cover"
-                          />
-                        ) : (
-                          <div className="w-full h-full bg-gray-200 flex items-center justify-center">
-                            <User className="h-16 w-16 text-gray-400" />
-                          </div>
-                        )}
+                <div className="space-y-1 md:space-y-1.5">
+                  <Label className="ml-4 md:ml-5 text-[8px] md:text-[9px] font-extrabold text-slate-400 uppercase tracking-widest">Blood Group</Label>
+                  <Select name="bloodGroup" value={formData.bloodGroup} onValueChange={(value) => handleSelectChange("bloodGroup", value)}>
+                    <SelectTrigger className="h-10 md:h-12 rounded-full border-2 border-slate-100 bg-slate-50/50 focus:bg-white focus:border-indigo-500 transition-all font-bold text-[10px] md:text-xs px-7 md:px-8 shadow-sm uppercase tracking-widest">
+                      <SelectValue placeholder="Blood Group" />
+                    </SelectTrigger>
+                    <SelectContent className="bg-white rounded-2xl border-2 border-slate-100 h-48">
+                      {["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"].map(bg => (
+                        <SelectItem key={bg} value={bg} className="font-bold text-[10px] md:text-xs uppercase tracking-widest">{bg}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-1 md:space-y-1.5">
+                  <Label className="ml-4 md:ml-5 text-[8px] md:text-[9px] font-extrabold text-slate-400 uppercase tracking-widest">Address</Label>
+                  <Input
+                    id="address"
+                    name="address"
+                    value={formData.address}
+                    onChange={handleChange}
+                    placeholder="123 Health St, Medical City"
+                    className="h-10 md:h-12 rounded-full border-2 border-slate-100 bg-slate-50/50 focus:bg-white focus:border-indigo-500 transition-all font-bold text-xs md:text-sm px-7 md:px-8 shadow-sm"
+                    data-testid="input-address"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label className="ml-4 md:ml-5 text-[8px] md:text-[9px] font-extrabold text-slate-400 uppercase tracking-widest">Profile Photo</Label>
+                  <div className="flex items-center space-x-3 ml-2">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={triggerFileInput}
+                      className="flex items-center space-x-2 h-10 md:h-12 rounded-full border-2 border-slate-100 bg-slate-50/50 hover:bg-slate-100 text-slate-400 font-black px-6"
+                    >
+                      <Upload className="h-4 w-4" />
+                      <span className="text-[10px] uppercase tracking-widest">UPLOAD</span>
+                    </Button>
+                    <input
+                      type="file"
+                      ref={fileInputRef}
+                      onChange={handleImageUpload}
+                      accept="image/*"
+                      className="hidden"
+                    />
+                    {previewImage && (
+                      <div className="w-10 h-10 md:w-12 md:h-12 rounded-full overflow-hidden border-2 border-indigo-400 shadow-md">
+                        <img
+                          src={previewImage}
+                          alt="Preview"
+                          className="w-full h-full object-cover"
+                        />
                       </div>
-                      <div className="text-center">
-                        <h3 className="text-2xl font-bold text-blue-900 mb-2">
-                          {formData.name || "Your Name"}
-                        </h3>
-                        <p className="text-lg text-blue-700 font-semibold mb-1">
-                          {formData.username ? `@${formData.username}` : "Username"}
-                        </p>
-                        <p className="text-md text-blue-600">
-                          {formData.email || "Email Address"}
-                        </p>
-                        <div className="mt-4 px-4 py-2 bg-blue-100 rounded-full">
-                          <p className="text-blue-800 font-medium">Patient ID: NEW</p>
-                        </div>
-                      </div>
+                    )}
+                  </div>
+                  <p className="text-[8px] text-slate-300 font-bold uppercase mt-1 ml-5">Max size 5MB (JPG/PNG)</p>
+                </div>
+
+                <Button
+                  type="submit"
+                  className="w-full h-11 md:h-14 rounded-full bg-blue-700 hover:bg-blue-800 text-white font-black text-sm md:text-base shadow-[0_8px_16px_-4px_rgba(59,130,246,0.3)] md:shadow-[0_15px_30px_-8px_rgba(59,130,246,0.3)] transition-all hover:translate-y-[-2px] active:translate-y-0 gap-3 mt-3 md:mt-4 uppercase tracking-widest"
+                  disabled={isLoading}
+                  data-testid="button-register"
+                >
+                  {isLoading ? (
+                    <div className="animate-spin rounded-full h-4 w-4 md:h-5 md:w-5 border-b-2 border-white" />
+                  ) : (
+                    "REGISTER ACCOUNT"
+                  )}
+                </Button>
+              </form>
+            </div>
+
+
+            {/* Column 2: Profile Preview */}
+            <div className="flex-1 flex flex-col items-center">
+              <div className="w-full h-full min-h-[200px] md:min-h-[350px] bg-gradient-to-br from-slate-50 to-blue-50/30 rounded-[1.2rem] md:rounded-[2.5rem] border-2 border-dashed border-slate-200 p-4 md:p-8 flex flex-col items-center justify-center text-center shadow-inner relative overflow-hidden group">
+                <div className="space-y-4 md:space-y-6">
+                  <div className="relative">
+                    <div className="absolute inset-0 bg-indigo-600 rounded-full blur-[30px] opacity-10 group-hover:opacity-20 transition-opacity" />
+                    <div className="w-20 h-20 md:w-40 md:h-40 rounded-full overflow-hidden border-[3px] md:border-[4px] border-white shadow-lg md:shadow-xl relative z-10 transition-transform duration-700 group-hover:scale-105 mx-auto bg-slate-100 flex items-center justify-center">
+                      {previewImage ? (
+                        <img src={previewImage} alt="Profile Preview" className="w-full h-full object-cover" />
+                      ) : (
+                        <User className="w-12 h-12 md:w-20 md:h-20 text-slate-300" />
+                      )}
+                    </div>
+                  </div>
+                  <div className="space-y-2 md:space-y-3">
+                    <div className="space-y-0.5">
+                      <h2 className="text-lg md:text-2xl font-black text-slate-800 tracking-tight">{formData.name || "YOUR NAME"}</h2>
+                      <p className="text-xs md:text-base font-black text-indigo-600 uppercase tracking-widest">@{formData.username || "username"}</p>
+                      <p className="text-slate-400 font-bold uppercase text-[7px] md:text-[8px] tracking-[0.2em] truncate max-w-[150px] md:max-w-none mx-auto">{formData.email || "Email Identity"}</p>
+                    </div>
+                    <div className="bg-indigo-600/10 text-indigo-700 inline-block px-4 md:px-6 py-1.5 md:py-2 rounded-full font-black text-[8px] md:text-[10px] uppercase tracking-widest">
+                      Patient ID: NEW
                     </div>
                   </div>
                 </div>
 
                 {/* Registration Notice */}
-                <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg w-full max-w-sm">
-                  <p className="text-xs text-blue-700">
-                    <strong>Registration Note:</strong> Your profile photo will be used for identification during login. Please ensure it's a clear, recent photo of your face.
+                <div className="mt-6 p-4 bg-blue-50/50 border border-blue-100 rounded-[1rem] w-full max-w-sm absolute bottom-4 opacity-0 group-hover:opacity-100 transition-opacity duration-500">
+                  <p className="text-[10px] text-blue-400 font-bold uppercase tracking-widest leading-relaxed">
+                    <strong>Note:</strong> Photo identity is used for biometric verification during clinical access.
                   </p>
                 </div>
               </div>
-            </div>
 
-            <div className="mt-6 text-center">
-              <p className="text-sm text-slate-600">
-                Already have an account?{" "}
-                <Button
-                  variant="link"
-                  className="p-0 h-auto text-blue-600 hover:text-blue-800"
-                  onClick={() => navigate("/login")}
-                  data-testid="link-login"
-                >
-                  Patient Login
-                </Button>
-              </p>
+              <div className="mt-8 text-center">
+                <p className="text-[11px] font-bold text-slate-400 uppercase tracking-widest">
+                  Already registered?{" "}
+                  <button
+                    className="text-blue-600 hover:text-blue-800 font-black transition-colors"
+                    onClick={() => navigate("/login")}
+                    data-testid="link-login"
+                  >
+                    PATIENT LOGIN
+                  </button>
+                </p>
+              </div>
             </div>
-          </CardContent>
-        </Card>
-
-        <div className="text-center mt-6">
-          <Button
-            variant="ghost"
-            onClick={() => navigate("/")}
-            data-testid="link-home"
-            className="text-blue-800 hover:text-blue-900 hover:bg-blue-100 border border-blue-300 px-8 py-3"
-          >
-            ← Back to Home
-          </Button>
+          </div>
         </div>
+
+        {/* Back Link */}
+        <Button
+          variant="ghost"
+          onClick={() => navigate("/")}
+          className="h-8 md:h-11 rounded-full px-6 border-2 border-slate-200 text-slate-400 hover:text-slate-600 hover:bg-slate-50 font-black text-[8px] md:text-[11px] uppercase tracking-widest transition-all mb-4 md:mb-6 mt-3 md:mt-0"
+        >
+          ← BACK TO HOME
+        </Button>
       </div>
     </div>
   );

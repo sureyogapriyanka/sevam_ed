@@ -143,30 +143,30 @@ export default function AdminLoginPage() {
                 }}
             />
 
-            <div className="w-full max-w-6xl relative z-10">
+            <div className="w-full max-w-4xl relative z-10">
                 {/* SevaMed Logo and Header */}
-                <div className="text-center mb-10 w-full max-w-lg mx-auto">
-                    <div className="flex flex-col items-center justify-center mb-6">
-                        <div className="w-16 h-16 bg-white rounded-2xl flex items-center justify-center shadow-2xl border border-blue-50 transform rotate-3 hover:rotate-0 transition-all duration-500 relative z-30">
-                            <img src="/sevamed logo.png" alt="SevaMed Logo" className="w-10 h-10 object-contain" />
+                <div className="text-center mb-6 w-full max-w-md mx-auto">
+                    <div className="flex flex-col items-center justify-center mb-2 md:mb-4">
+                        <div className="w-10 h-10 md:w-12 md:h-12 bg-white rounded-xl md:rounded-2xl flex items-center justify-center shadow-xl border border-blue-50 transform rotate-3 hover:rotate-0 transition-all duration-500 relative z-30">
+                            <img src="/sevamed logo.png" alt="SevaMed Logo" className="w-6 h-6 md:w-8 md:h-8 object-contain" />
                         </div>
                     </div>
-                    <div className="bg-gradient-to-r from-blue-700 to-indigo-800 rounded-[3rem] p-8 pb-10 shadow-[0_30px_60px_-15px_rgba(0,0,0,0.15)] relative z-20 border border-slate-100 flex flex-col items-center">
-                        <h1 className="text-4xl font-black text-white tracking-widest uppercase mb-1 drop-shadow-sm">
+                    <div className="bg-gradient-to-r from-blue-700 to-indigo-800 rounded-[1.2rem] md:rounded-[2.5rem] p-4 md:p-6 pb-5 md:pb-8 shadow-[0_10px_20px_-8px_rgba(0,0,0,0.1)] md:shadow-[0_20px_40px_-10px_rgba(0,0,0,0.15)] relative z-20 border border-slate-100 flex flex-col items-center">
+                        <h1 className="text-lg md:text-2xl font-black text-white tracking-widest uppercase mb-0.5 md:mb-1 drop-shadow-sm">
                             {t("sevamed_hms")}
                         </h1>
-                        <p className="text-indigo-200 font-black text-xs uppercase tracking-[0.3em] mt-2 mb-4 bg-indigo-900/30 px-4 py-1.5 rounded-full inline-block">Administrator Access</p>
-                        <p className="text-blue-100 font-bold text-sm">Maximum Security Administrative Portal</p>
+                        <p className="text-indigo-200 font-black text-[8px] md:text-[9px] uppercase tracking-[0.2em] md:tracking-[0.3em] mt-1 mb-1.5 md:mb-3 bg-indigo-900/30 px-2.5 py-1 md:px-4 md:py-1 rounded-full inline-block">Administrator</p>
+                        <p className="text-blue-100 font-bold text-[9px] md:text-xs">Security Administrative Portal</p>
                     </div>
                 </div>
 
                 {!showLoginForm ? (
                     /* Admin Profile Selection */
-                    <Card className="shadow-[0_40px_80px_-20px_rgba(0,0,0,0.1)] border-slate-100 bg-white/95 backdrop-blur-lg relative z-20 rounded-[3rem] overflow-hidden -mt-16 mx-auto pt-10">
-                        <CardHeader className="bg-transparent text-slate-800 pb-0 pt-8 rounded-t-[3rem]">
-                            <CardTitle className="text-center text-xl font-bold flex items-center justify-center space-x-2">
-                                <Shield className="h-6 w-6 text-indigo-600" />
-                                <span>Select Administrator Profile</span>
+                    <Card className="shadow-[0_10px_20px_-8px_rgba(0,0,0,0.1)] md:shadow-[0_30px_60px_-15px_rgba(0,0,0,0.1)] border-slate-100 bg-white/95 backdrop-blur-lg relative z-20 rounded-[1.2rem] md:rounded-[2.5rem] overflow-hidden -mt-6 md:-mt-12 mx-4 md:mx-auto pt-4 md:pt-6">
+                        <CardHeader className="bg-transparent text-slate-800 pb-0 pt-3 md:pt-6 rounded-t-[1.5rem] md:rounded-t-[2.5rem]">
+                            <CardTitle className="text-center text-base md:text-lg font-bold flex items-center justify-center space-x-2">
+                                <Shield className="h-4 w-4 md:h-5 md:w-5 text-indigo-600" />
+                                <span>Administrator Profile</span>
                             </CardTitle>
                             <div className="flex justify-center mt-4">
                                 <div className="w-56">
@@ -175,39 +175,39 @@ export default function AdminLoginPage() {
                             </div>
                         </CardHeader>
 
-                        <CardContent className="p-10">
-                            <p className="text-center text-slate-400 mb-8 font-bold text-xs uppercase tracking-widest">
-                                Choose your administrator profile to access secure dashboard
+                        <CardContent className="p-4 md:p-8">
+                            <p className="text-center text-slate-400 mb-4 md:mb-6 font-bold text-[8px] md:text-[9px] uppercase tracking-[0.2em] md:tracking-widest px-2">
+                                Choose profile to access dashboard
                             </p>
 
-                            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-8">
                                 {adminProfiles.map((admin) => (
                                     <div key={admin.id} className="flex flex-col items-center">
                                         <button
                                             onClick={() => handleAdminSelect(admin)}
-                                            className="group w-full bg-white hover:bg-slate-50 border border-slate-200 hover:border-indigo-200 rounded-[2rem] p-8 transition-all duration-300 transform hover:scale-[1.02] shadow-sm hover:shadow-xl backdrop-blur-sm relative z-20"
+                                            className="group w-full bg-white hover:bg-slate-50 border border-slate-200 hover:border-indigo-200 rounded-[1rem] md:rounded-[2rem] p-4 md:p-8 transition-all duration-300 transform hover:scale-[1.02] shadow-sm hover:shadow-xl backdrop-blur-sm relative z-20"
                                         >
                                             {/* Round Profile Image */}
-                                            <div className="w-24 h-24 mx-auto mb-6 rounded-full overflow-hidden border-4 border-slate-100 group-hover:border-indigo-100 transition-all duration-300 shadow-sm flex items-center justify-center bg-slate-50">
+                                            <div className="w-16 h-16 md:w-20 md:h-20 mx-auto mb-3 md:mb-4 rounded-full overflow-hidden border-2 border-slate-100 group-hover:border-indigo-100 transition-all duration-300 shadow-sm flex items-center justify-center bg-slate-50">
                                                 {admin.image ? (
                                                     <img src={admin.image} alt={admin.name} className="w-full h-full object-cover" />
                                                 ) : (
-                                                    <User className="h-10 w-10 text-slate-300" />
+                                                    <User className="h-8 w-8 text-slate-300" />
                                                 )}
                                             </div>
 
                                             {/* Admin Info */}
                                             <div className="text-center">
-                                                <h3 className="text-slate-800 font-bold text-lg mb-1 tracking-tight">{admin.name}</h3>
-                                                <p className="text-indigo-600 text-[10px] uppercase font-bold tracking-widest mb-1">{admin.title}</p>
-                                                <p className="text-slate-500 text-xs font-semibold mt-3 bg-slate-100 py-1.5 px-3 rounded-full inline-block">Roll: {admin.rollNumber}</p>
+                                                <h3 className="text-slate-800 font-bold text-sm md:text-base mb-0.5 tracking-tight">{admin.name}</h3>
+                                                <p className="text-indigo-600 text-[7px] md:text-[8px] uppercase font-bold tracking-widest mb-0.5">{admin.title}</p>
+                                                <p className="text-slate-500 text-[8px] md:text-[9px] font-semibold mt-1.5 md:mt-2 bg-slate-100 py-1 px-2 md:px-2.5 rounded-full inline-block">Roll: {admin.rollNumber}</p>
                                             </div>
 
                                             {/* Hover Effect */}
-                                            <div className="mt-6 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                                                <div className="flex items-center justify-center space-x-2 text-indigo-600 text-[11px] font-black tracking-widest uppercase bg-indigo-50 px-4 py-2.5 rounded-full shadow-sm">
-                                                    <Lock className="h-4 w-4" />
-                                                    <span>Click to Authenticate</span>
+                                            <div className="mt-3 md:mt-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                                                <div className="flex items-center justify-center space-x-2 text-indigo-600 text-[8px] md:text-[10px] font-black tracking-widest uppercase bg-indigo-50 px-2.5 md:px-3 py-1.5 md:py-2 rounded-full shadow-sm">
+                                                    <Lock className="h-3 w-3" />
+                                                    <span>Authenticate</span>
                                                 </div>
                                             </div>
                                         </button>
@@ -216,9 +216,9 @@ export default function AdminLoginPage() {
                             </div>
 
                             {/* Security Notice */}
-                            <div className="mt-10 p-5 bg-blue-50/50 border border-blue-100 rounded-3xl">
-                                <p className="text-center text-slate-500 text-[10px] font-bold uppercase tracking-widest flex items-center justify-center gap-2">
-                                    <Shield className="h-4 w-4 text-indigo-400" />
+                            <div className="mt-8 md:mt-10 p-4 md:p-5 bg-blue-50/50 border border-blue-100 rounded-2xl md:rounded-3xl">
+                                <p className="text-center text-slate-500 text-[9px] md:text-[10px] font-bold uppercase tracking-[0.15em] md:tracking-widest flex flex-col md:flex-row items-center justify-center gap-2">
+                                    <Shield className="h-4 w-4 text-indigo-400 mb-1 md:mb-0" />
                                     <span>All administrator access attempts are logged and monitored for security compliance</span>
                                 </p>
                             </div>
@@ -242,7 +242,7 @@ export default function AdminLoginPage() {
                                     </button>
 
                                     <div className="text-center">
-                                        <div className="w-16 h-16 mx-auto mb-4 rounded-full overflow-hidden border-4 border-white/30">
+                                        <div className="w-14 h-14 mx-auto mb-3 rounded-full overflow-hidden border-4 border-white/30">
                                             <img
                                                 src={selectedAdmin?.image}
                                                 alt={selectedAdmin?.name}
@@ -337,12 +337,12 @@ export default function AdminLoginPage() {
                     </>
                 )}
 
-                <div className="text-center mt-6">
+                <div className="text-center mt-6 md:mt-8 mb-8 md:mb-0">
                     <Button
                         variant="ghost"
                         onClick={() => navigate("/staff-login", { replace: true })}
                         data-testid="link-staff"
-                        className="text-slate-600 hover:text-slate-800 hover:bg-slate-200/50 border border-slate-400/30 px-8 py-3"
+                        className="text-slate-600 hover:text-slate-800 hover:bg-slate-200/50 border border-slate-400/30 px-4 py-1 md:px-6 md:py-2 text-[8px] md:text-xs rounded-full"
                     >
                         ← Back to Staff Portal
                     </Button>

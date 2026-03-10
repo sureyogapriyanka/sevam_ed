@@ -79,7 +79,7 @@ export default function StaffLoginPage() {
     const IconComponent = currentRoleData?.icon || UserCircle;
 
     return (
-        <div className="min-h-screen bg-[#f8faff] flex flex-col items-center p-4 pb-32 relative overflow-hidden font-sans">
+        <div className="min-h-screen bg-[#f8faff] flex flex-col items-center p-4 pb-20 md:pb-32 relative overflow-hidden font-sans">
             {/* Soft Ambient Background Elements */}
             <div className="absolute top-[-10%] right-[-10%] w-[40%] h-[40%] bg-blue-100 rounded-full blur-[120px] opacity-40 pointer-events-none" />
             <div className="absolute bottom-[-10%] left-[-10%] w-[30%] h-[30%] bg-indigo-50 rounded-full blur-[100px] opacity-30 pointer-events-none" />
@@ -102,51 +102,51 @@ export default function StaffLoginPage() {
             </div>
 
             {/* Header / Branding Section */}
-            <div className="w-full max-w-lg mt-24 mb-10 text-center relative z-10 space-y-6">
-                <div className="flex flex-col items-center gap-4">
-                    <div className="w-16 h-16 bg-white rounded-2xl flex items-center justify-center shadow-2xl border border-blue-50 transform rotate-3 hover:rotate-0 transition-all duration-500">
-                        <img src="/sevamed logo.png" alt="SevaMed Logo" className="w-10 h-10 object-contain" />
+            <div className="w-full max-w-md mt-10 md:mt-16 mb-4 md:mb-8 text-center relative z-10 space-y-2 md:space-y-4">
+                <div className="flex flex-col items-center gap-3">
+                    <div className="w-10 h-10 md:w-14 md:h-14 bg-white rounded-xl flex items-center justify-center shadow-xl border border-blue-50 transform rotate-3 hover:rotate-0 transition-all duration-500">
+                        <img src="/sevamed logo.png" alt="SevaMed Logo" className="w-6 h-6 md:w-8 md:h-8 object-contain" />
                     </div>
                 </div>
-                <div className="space-y-1">
-                    <h1 className="text-3xl font-black text-slate-900 tracking-tight uppercase">{t("sevamed_hms")}</h1>
-                    <p className="text-blue-500 font-black text-[10px] uppercase tracking-[0.4em]">Integrated Staff Gateway</p>
+                <div className="space-y-0.5">
+                    <h1 className="text-lg md:text-2xl font-black text-slate-900 tracking-tight uppercase">{t("sevamed_hms")}</h1>
+                    <p className="text-blue-500 font-black text-[8px] md:text-[9px] uppercase tracking-[0.3em] md:tracking-[0.4em]">Integrated Staff Gateway</p>
                 </div>
             </div>
 
             {/* Main Portal Selection Hub */}
-            <div className="w-full max-w-lg relative z-10 px-4">
-                <div className="bg-white rounded-[3rem] shadow-[0_50px_100px_-20px_rgba(79,70,229,0.1)] border border-blue-50 overflow-hidden flex flex-col">
+            <div className="w-full max-w-md relative z-10 px-4">
+                <div className="bg-white rounded-[1.2rem] md:rounded-[2.5rem] shadow-[0_15px_30px_-10px_rgba(79,70,229,0.1)] md:shadow-[0_30px_60px_-15px_rgba(79,70,229,0.1)] border border-blue-50 overflow-hidden flex flex-col">
                     {/* Blue-Indigo Header */}
-                    <div className="p-10 pb-6 text-center space-y-2 border-b border-blue-50 bg-gradient-to-r from-blue-700 to-indigo-800">
-                        <h2 className="text-xl font-black text-white uppercase tracking-tight">Staff Authentication Hub</h2>
-                        <p className="text-blue-100 font-bold text-[10px] uppercase tracking-widest">Select your professional portal to begin</p>
+                    <div className="p-4 pb-3 md:p-8 md:pb-5 text-center space-y-1.5 border-b border-blue-50 bg-gradient-to-r from-blue-700 to-indigo-800">
+                        <h2 className="text-base md:text-lg font-black text-white uppercase tracking-tight">Staff Authentication</h2>
+                        <p className="text-blue-100 font-bold text-[8px] md:text-[9px] uppercase tracking-[0.2em] md:tracking-widest">Select your professional portal</p>
                     </div>
 
-                    <div className="p-10 space-y-8">
+                    <div className="p-4 md:p-8 space-y-4 md:space-y-6">
                         {/* Dynamic Preview/Icon Area */}
                         <div className="flex justify-center">
-                            <div className={`w-32 h-32 rounded-[2.5rem] flex items-center justify-center transition-all duration-700 ${currentRoleData ? `${currentRoleData.bg} ${currentRoleData.color} scale-110 shadow-lg` : 'bg-slate-50 text-slate-200'}`}>
-                                <IconComponent className="h-16 w-16" />
+                            <div className={`w-16 h-16 md:w-24 md:h-24 rounded-[1.2rem] md:rounded-[2rem] flex items-center justify-center transition-all duration-700 ${currentRoleData ? `${currentRoleData.bg} ${currentRoleData.color} scale-110 shadow-lg` : 'bg-slate-50 text-slate-200'}`}>
+                                <IconComponent className="h-8 w-8 md:h-12 md:w-12" />
                             </div>
                         </div>
 
                         {/* Role Selector */}
-                        <div className="space-y-2 relative">
-                            <div className="flex justify-between items-center px-4 mb-2">
-                                <label className="text-[10px] font-black text-indigo-400 uppercase tracking-widest">Choose Role</label>
+                        <div className="space-y-1.5 relative">
+                            <div className="flex justify-between items-center px-4 mb-1.5">
+                                <label className="text-[8px] font-black text-indigo-400 uppercase tracking-widest">Choose Role</label>
                                 <LanguageSelector />
                             </div>
                             <Select onValueChange={setSelectedRole} value={selectedRole}>
-                                <SelectTrigger className="w-full h-20 rounded-[2rem] border-2 border-slate-100 bg-slate-50 focus:border-indigo-500 focus:bg-white transition-all text-xl font-black uppercase text-slate-700 px-8 flex items-center shadow-sm z-10">
-                                    <SelectValue placeholder="Select Staff Identity" />
+                                <SelectTrigger className="w-full h-10 md:h-14 rounded-[1rem] md:rounded-[2rem] border-2 border-slate-100 bg-slate-50 focus:border-indigo-500 focus:bg-white transition-all text-xs md:text-base font-black uppercase text-slate-700 px-4 md:px-6 flex items-center shadow-sm z-10">
+                                    <SelectValue placeholder="Staff Identity" />
                                 </SelectTrigger>
-                                <SelectContent className="rounded-[2.5rem] border-blue-50 p-3 shadow-[0_20px_50px_rgba(79,70,229,0.2)] bg-white/95 backdrop-blur-xl z-[100] min-w-[300px]">
+                                <SelectContent className="rounded-[1.5rem] md:rounded-[2rem] border-blue-50 p-1.5 md:p-2 shadow-[0_15px_40px_rgba(79,70,229,0.2)] bg-white/95 backdrop-blur-xl z-[100] min-w-[280px]">
                                     {ROLES.map((role) => (
                                         <SelectItem
                                             key={role.id}
                                             value={role.id}
-                                            className="h-16 rounded-[1.5rem] font-black uppercase text-xs tracking-widest text-slate-600 focus:bg-indigo-600 focus:text-white mb-2 cursor-pointer transition-all px-6"
+                                            className="h-14 md:h-16 rounded-[1.25rem] md:rounded-[1.5rem] font-black uppercase text-[10px] md:text-xs tracking-widest text-slate-600 focus:bg-indigo-600 focus:text-white mb-2 cursor-pointer transition-all px-4 md:px-6"
                                         >
                                             <div className="flex items-center gap-4">
                                                 <div className={`p-2 rounded-xl ${role.bg}`}>
@@ -164,42 +164,42 @@ export default function StaffLoginPage() {
                         <Button
                             onClick={handleEnterPortal}
                             disabled={!selectedRole}
-                            className={`w-full h-20 rounded-full font-black text-xl uppercase tracking-widest transition-all duration-500 shadow-xl flex items-center justify-center gap-4 ${selectedRole ? 'bg-indigo-600 hover:bg-indigo-700 text-white translate-y-[-4px] shadow-indigo-100' : 'bg-slate-100 text-slate-300 shadow-none'}`}
+                            className={`w-full h-10 md:h-14 rounded-full font-black text-xs md:text-base uppercase tracking-widest transition-all duration-500 shadow-md md:shadow-lg flex items-center justify-center gap-2 md:gap-3 ${selectedRole ? 'bg-indigo-600 hover:bg-indigo-700 text-white translate-y-[-2px] md:translate-y-[-4px] shadow-indigo-100' : 'bg-slate-100 text-slate-300 shadow-none'}`}
                         >
-                            Enter Gateway
-                            <ArrowRight className={`h-6 w-6 transition-transform duration-500 ${selectedRole ? 'translate-x-2' : ''}`} />
+                            Enter Portal
+                            <ArrowRight className={`h-3 w-3 md:h-4 md:w-4 transition-transform duration-500 ${selectedRole ? 'translate-x-2' : ''}`} />
                         </Button>
                     </div>
 
                     {/* Footer Info */}
-                    <div className="px-10 py-6 bg-slate-50/50 border-t border-blue-50 flex items-center justify-between text-[10px] font-black text-indigo-300 uppercase tracking-widest">
+                    <div className="px-4 py-3 md:px-8 md:py-4 bg-slate-50/50 border-t border-blue-50 flex items-center justify-between text-[8px] md:text-[9px] font-black text-indigo-300 uppercase tracking-widest">
                         <div className="flex items-center gap-2">
-                            <div className={`w-2 h-2 rounded-full animate-pulse ${selectedRole ? 'bg-emerald-400 shadow-[0_0_10px_rgba(52,211,153,0.5)]' : 'bg-slate-200'}`} />
-                            <span>{selectedRole ? 'Secure Handshake Ready' : 'Awaiting Selection'}</span>
+                            <div className={`w-1.5 h-1.5 rounded-full animate-pulse ${selectedRole ? 'bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.5)]' : 'bg-slate-200'}`} />
+                            <span>{selectedRole ? 'Port Ready' : 'Standby'}</span>
                         </div>
-                        <div className="font-mono text-[9px] text-slate-400">{currentTime.toLocaleTimeString()}</div>
+                        <div className="font-mono text-[8px] text-slate-400">{currentTime.toLocaleTimeString()}</div>
                     </div>
                 </div>
             </div>
 
             {/* Professional Security Notice */}
-            <div className="w-full max-w-lg mt-10 px-4">
-                <div className="bg-white/50 backdrop-blur border border-blue-100/50 rounded-3xl p-6 flex gap-5 items-start">
-                    <AlertTriangle className="h-5 w-5 text-indigo-400 shrink-0 mt-0.5" />
-                    <div className="space-y-1">
-                        <p className="text-[10px] font-black text-indigo-500 uppercase tracking-widest">System Protocol:</p>
-                        <p className="text-[10px] font-bold text-slate-400 uppercase leading-relaxed">
-                            Authorized personnel only. All access attempts are cataloged for security auditing. IP: 127.0.0.1
+            <div className="w-full max-w-md mt-4 md:mt-6 px-4">
+                <div className="bg-white/50 backdrop-blur border border-blue-100/50 rounded-xl md:rounded-2xl p-3 md:p-4 flex gap-3 md:gap-4 items-start">
+                    <AlertTriangle className="h-3 w-3 md:h-4 md:w-4 text-indigo-400 shrink-0 mt-0.5" />
+                    <div className="space-y-0.5">
+                        <p className="text-[8px] md:text-[9px] font-black text-indigo-500 uppercase tracking-widest">Protocol:</p>
+                        <p className="text-[8px] md:text-[9px] font-bold text-slate-400 uppercase leading-relaxed">
+                            Authorized personnel only. Access attempt logged. IP: 127.0.0.1
                         </p>
                     </div>
                 </div>
             </div>
 
             {/* Bottom Nav Link */}
-            <div className="mt-12 mb-20">
+            <div className="mt-6 md:mt-10 mb-20 md:mb-16">
                 <button
                     onClick={() => navigate("/")}
-                    className="h-12 px-10 border border-slate-200 text-slate-400 hover:text-slate-600 hover:border-slate-300 rounded-full font-black text-[10px] uppercase tracking-[0.2em] transition-all"
+                    className="h-8 md:h-10 px-5 md:px-8 border border-slate-200 text-slate-400 hover:text-slate-600 hover:border-slate-300 rounded-full font-black text-[7px] md:text-[9px] uppercase tracking-[0.2em] transition-all"
                 >
                     ← Back to Foundation
                 </button>
