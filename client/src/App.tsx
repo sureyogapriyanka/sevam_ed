@@ -1,4 +1,4 @@
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { queryClient } from "./lib/queryClient";
 import { Toaster } from "./components/ui/toaster";
@@ -31,17 +31,20 @@ import RecordVitalsPage from "./pages/nurse/RecordVitalsPage";
 import VitalsHistoryPage from "./pages/nurse/VitalsHistoryPage";
 import WardManagementPage from "./pages/nurse/WardManagementPage";
 import ShiftSchedulePage from "./pages/nurse/ShiftSchedulePage";
+import NurseChatPage from "./pages/nurse/NurseChatPage";
 import RegisterPatientPage from "./pages/receptionist/RegisterPatientPage";
 import PaymentCollectionPage from "./pages/receptionist/PaymentCollectionPage";
 import QueueManagementPage from "./pages/receptionist/QueueManagementPage";
+import ReceptionistChatPage from "./pages/receptionist/ReceptionistChatPage";
 import QueueDisplayBoard from "./pages/QueueDisplayBoard";
 import PrescriptionsListPage from "./pages/prescriptions/PrescriptionsListPage";
 import PatientPrescriptionsPage from "./pages/patient/PatientPrescriptionsPage";
 
 import InventoryPage from "./pages/pharmacist/InventoryPage";
 import DispenseMedicinesPage from "./pages/pharmacist/DispenseMedicinesPage";
-import PurchaseOrdersPage from "./pages/pharmacist/PurchaseOrdersPage";
-import PharmacyAlertsPage from "./pages/pharmacist/PharmacyAlertsPage";
+import DispensingHubPage from "./pages/pharmacist/DispensingHubPage";
+import ProcessedOrdersPage from "./pages/pharmacist/ProcessedOrdersPage";
+import PharmacyReportsPage from "./pages/pharmacist/PharmacyReportsPage";
 
 import AdminLoginPage from "./pages/AdminLoginPage";
 import DoctorLoginPage from "./pages/DoctorLoginPage";
@@ -94,7 +97,6 @@ import DoctorAppointmentsPage from "./pages/doctor/DoctorAppointmentsPage";
 import DoctorQueuePage from "./pages/doctor/DoctorQueuePage";
 import DoctorPatientRecordsPage from "./pages/doctor/DoctorPatientRecordsPage";
 import DoctorPatientDetailsPage from "./pages/doctor/DoctorPatientDetailsPage";
-import DoctorResourcesPage from "./pages/doctor/DoctorResourcesPage";
 import DoctorActivityLogPage from "./pages/doctor/DoctorActivityLogPage";
 import DoctorChatPage from "./pages/doctor/DoctorChatPage";
 import DoctorReportsPage from "./pages/doctor/DoctorReportsPage";
@@ -104,7 +106,8 @@ import DoctorAttendancePage from "./pages/doctor/DoctorAttendancePage";
 import EditProfilePage from "./pages/doctor/EditProfilePage";
 import PatientEditProfilePage from "./pages/PatientEditProfilePage";
 import ChangePasswordPage from "./pages/doctor/ChangePasswordPage";
-import HealthTipsPage from "./pages/doctor/HealthTipsPage";
+import ProfileEditRouter from "./pages/ProfileEditRouter";
+import StaffProfilePage from "./pages/StaffProfilePage";
 
 function App() {
   return (
@@ -300,16 +303,6 @@ function App() {
                     }
                   />
                   <Route
-                    path="/doctor/resources"
-                    element={
-                      <ProtectedRoute allowedRoles={["doctor"]}>
-                        <Layout>
-                          <DoctorResourcesPage />
-                        </Layout>
-                      </ProtectedRoute>
-                    }
-                  />
-                  <Route
                     path="/doctor/activity"
                     element={
                       <ProtectedRoute allowedRoles={["doctor"]}>
@@ -360,16 +353,6 @@ function App() {
                     }
                   />
                   <Route
-                    path="/doctor/health-tips"
-                    element={
-                      <ProtectedRoute allowedRoles={["doctor"]}>
-                        <Layout>
-                          <HealthTipsPage />
-                        </Layout>
-                      </ProtectedRoute>
-                    }
-                  />
-                  <Route
                     path="/doctor/attendance"
                     element={
                       <ProtectedRoute allowedRoles={["doctor"]}>
@@ -380,33 +363,33 @@ function App() {
                     }
                   />
                   <Route
-                    path="/profile/edit"
+                    path="/profile"
                     element={
-                      <ProtectedRoute allowedRoles={["doctor"]}>
+                      <ProtectedRoute allowedRoles={["admin", "doctor", "nurse", "pharmacist", "reception", "receptionist"]}>
                         <Layout>
-                          <EditProfilePage />
+                          <StaffProfilePage />
                         </Layout>
                       </ProtectedRoute>
                     }
                   />
+                  
                   <Route
-                    path="/profile/change-password"
+                    path="/patient/profile"
                     element={
-                      <ProtectedRoute allowedRoles={["doctor"]}>
+                      <ProtectedRoute allowedRoles={["patient"]}>
                         <Layout>
-                          <ChangePasswordPage />
+                          <PatientEditProfilePage />
                         </Layout>
                       </ProtectedRoute>
                     }
                   />
 
-                  {/* Patient Profile Edit Route */}
                   <Route
                     path="/profile/edit"
                     element={
-                      <ProtectedRoute allowedRoles={["patient", "doctor"]}>
+                      <ProtectedRoute allowedRoles={["admin", "doctor", "nurse", "pharmacist", "reception", "receptionist", "patient"]}>
                         <Layout>
-                          <PatientEditProfilePage />
+                          <ProfileEditRouter />
                         </Layout>
                       </ProtectedRoute>
                     }
@@ -539,6 +522,16 @@ function App() {
                       </ProtectedRoute>
                     }
                   />
+                  <Route
+                    path="/receptionist/chat"
+                    element={
+                      <ProtectedRoute allowedRoles={["receptionist", "reception"]}>
+                        <Layout>
+                          <ReceptionistChatPage />
+                        </Layout>
+                      </ProtectedRoute>
+                    }
+                  />
                   {/* OPD alias and Billing Verification */}
                   <Route
                     path="/receptionist/opd"
@@ -575,6 +568,26 @@ function App() {
                     }
                   />
                   <Route
+                    path="/nurse/messages"
+                    element={
+                      <ProtectedRoute allowedRoles={["nurse"]}>
+                        <Layout>
+                          <NurseChatPage />
+                        </Layout>
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/receptionist/appointments"
+                    element={
+                      <ProtectedRoute allowedRoles={["receptionist", "reception"]}>
+                        <Layout>
+                          <QueueManagementPage />
+                        </Layout>
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
                     path="/receptionist/dashboard"
                     element={
                       <ProtectedRoute allowedRoles={["receptionist"]}>
@@ -582,6 +595,7 @@ function App() {
                       </ProtectedRoute>
                     }
                   />
+                  <Route path="/pharmacist" element={<Navigate to="/pharmacist/dashboard" replace />} />
                   <Route
                     path="/pharmacist/dashboard"
                     element={
@@ -604,11 +618,21 @@ function App() {
                     }
                   />
                   <Route
+                    path="/pharmacist/dispensing-hub"
+                    element={
+                      <ProtectedRoute allowedRoles={["pharmacist"]}>
+                        <Layout>
+                          <DispensingHubPage />
+                        </Layout>
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
                     path="/pharmacist/queue"
                     element={
                       <ProtectedRoute allowedRoles={["pharmacist"]}>
                         <Layout>
-                          <PharmacistDashboard />
+                          <DispensingHubPage />
                         </Layout>
                       </ProtectedRoute>
                     }
@@ -633,42 +657,24 @@ function App() {
                       </ProtectedRoute>
                     }
                   />
+
                   <Route
-                    path="/pharmacist/search"
+                    path="/pharmacist/processed-orders"
                     element={
                       <ProtectedRoute allowedRoles={["pharmacist"]}>
                         <Layout>
-                          <InventoryPage />
+                          <ProcessedOrdersPage />
                         </Layout>
                       </ProtectedRoute>
                     }
                   />
-                  <Route
-                    path="/pharmacist/purchase-orders"
-                    element={
-                      <ProtectedRoute allowedRoles={["pharmacist"]}>
-                        <Layout>
-                          <PurchaseOrdersPage />
-                        </Layout>
-                      </ProtectedRoute>
-                    }
-                  />
-                  <Route
-                    path="/pharmacist/alerts"
-                    element={
-                      <ProtectedRoute allowedRoles={["pharmacist"]}>
-                        <Layout>
-                          <PharmacyAlertsPage />
-                        </Layout>
-                      </ProtectedRoute>
-                    }
-                  />
+
                   <Route
                     path="/pharmacist/reports"
                     element={
                       <ProtectedRoute allowedRoles={["pharmacist"]}>
                         <Layout>
-                          <PharmacyAlertsPage />
+                          <PharmacyReportsPage />
                         </Layout>
                       </ProtectedRoute>
                     }

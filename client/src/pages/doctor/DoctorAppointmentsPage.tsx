@@ -17,7 +17,8 @@ import {
     AlertTriangle,
     Clock,
     TrendingUp,
-    Search
+    Search,
+    ChevronRight,
 } from "lucide-react";
 import { Appointment, User as UserType } from "../../types/schema";
 
@@ -161,153 +162,154 @@ export default function DoctorAppointmentsPage() {
     };
 
     return (
-        <div className="space-y-6">
-            <div className="flex justify-between items-center">
-                <h2 className="text-2xl font-bold text-blue-900">Patient Appointments</h2>
-                <div className="flex space-x-2">
+        <div className="h-[calc(100vh-100px)] flex flex-col gap-6">
+            <div className="flex justify-between items-center shrink-0">
+                <div>
+                    <h2 className="text-3xl font-black text-blue-900 tracking-tight">Clinical Schedule</h2>
+                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mt-1">Confirmed & Pending Appointments</p>
+                </div>
+                <div className="flex gap-3">
                     <Button
                         variant="outline"
                         onClick={() => {
-                            // In a real implementation, this would refresh the appointments
                             queryClient.invalidateQueries({ queryKey: ["/api/appointments/doctor", user?.id] });
                             toast({
-                                title: "Refreshed",
-                                description: "Appointments list has been updated",
-                                className: "bg-green-50 border-green-200 text-green-800"
+                                title: "List Updated",
+                                description: "Schedule has been synchronized with the server.",
+                                className: "bg-blue-50 border-blue-200 text-blue-800"
                             });
                         }}
-                        className="border-blue-300 text-blue-700 hover:bg-blue-100 hover:shadow-md transition-all duration-200 flex items-center"
+                        className="border-slate-200 text-slate-600 hover:bg-blue-50 hover:text-blue-600 rounded-xl transition-all font-bold px-6"
                     >
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                        </svg>
-                        Refresh
+                        <Search className="h-4 w-4 mr-2" />
+                        Sync Data
                     </Button>
                 </div>
             </div>
 
-            {selectedAppointment && selectedAppointment.patientId ? (
-                <AppointmentNotes
-                    appointment={{
-                        id: selectedAppointment.id,
-                        patientId: selectedAppointment.patientId!,
-                        patientName: getPatientName(selectedAppointment.patientId),
-                        scheduledAt: selectedAppointment.scheduledAt || new Date(),
-                        symptoms: selectedAppointment.symptoms || "Not specified",
-                        priority: selectedAppointment.priority || "normal",
-                        medicalHistory: {
-                            conditions: [],
-                            allergies: [],
-                            medications: [],
-                            surgeries: "",
-                            familyHistory: ""
-                        },
-                        additionalNotes: selectedAppointment.notes || "",
-                        status: selectedAppointment.status || "scheduled"
-                    }}
-                    onRecommendationsSent={() => {
-                        setShowRecommendationsSent(true);
-                        toast({
-                            title: "Success",
-                            description: "Recommendations sent to patient successfully!"
-                        });
-                    }}
-                />
-            ) : (
-                <Card className="shadow-lg hover:shadow-xl transition-all duration-300 bg-white border-2 border-blue-200 rounded-xl overflow-hidden">
-                    <CardContent className="p-0">
-                        {todaysAppointments.length === 0 ? (
-                            <div className="text-center py-12">
-                                <Calendar className="h-12 w-12 mx-auto text-gray-400 mb-4" />
-                                <h3 className="text-lg font-medium text-gray-900 mb-2">No Appointments Today</h3>
-                                <p className="text-gray-600 mb-4">You have no appointments scheduled for today.</p>
-                                <Button
-                                    className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-lg hover:shadow-xl transform hover:scale-105"
-                                    onClick={() => {
-                                        // In a real implementation, this would navigate to scheduling
-                                        toast({
-                                            title: "Scheduling",
-                                            description: "Appointment scheduling feature coming soon"
-                                        });
-                                    }}
+            <div className="grid grid-cols-12 gap-8 flex-1 min-h-0">
+                {/* ══ LEFT: APPOINTMENT LIST (Col 5) ════════════════════════════════════ */}
+                <div className="col-span-12 lg:col-span-5 flex flex-col gap-4 overflow-y-auto pr-2 custom-scrollbar">
+                    {todaysAppointments.length === 0 ? (
+                        <div className="bg-white border-2 border-dashed border-slate-100 rounded-[2.5rem] p-12 text-center">
+                            <Calendar className="h-12 w-12 mx-auto text-slate-300 mb-4" />
+                            <h3 className="text-xl font-black text-slate-900 mb-2">No Active Slots</h3>
+                            <p className="text-slate-400 text-xs font-bold uppercase tracking-widest leading-relaxed">Your itinerary for today is clear</p>
+                        </div>
+                    ) : (
+                        (todaysAppointments as Appointment[]).map((apt: Appointment, index: number) => {
+                            const isActive = selectedAppointment?.id === apt.id;
+                            return (
+                                <div
+                                    key={apt.id || index}
+                                    onClick={() => setSelectedAppointment(apt)}
+                                    className={`group relative p-6 rounded-[2rem] border-2 transition-all duration-300 cursor-pointer overflow-hidden ${isActive
+                                        ? "bg-blue-600 border-blue-600 shadow-xl shadow-blue-500/20 translate-x-1"
+                                        : "bg-white border-slate-100 hover:border-blue-200 hover:bg-blue-50/50"
+                                        }`}
                                 >
-                                    <Plus className="h-4 w-4 mr-2" />
-                                    Schedule Appointment
-                                </Button>
-                            </div>
-                        ) : (
-                            <div className="divide-y divide-gray-100">
-                                {(todaysAppointments as Appointment[]).map((apt: Appointment, index: number) => (
-                                    <div
-                                        key={apt.id || index}
-                                        className="p-6 hover:bg-blue-50 transition-all duration-200 cursor-pointer transform hover:scale-[1.01] border-b border-gray-100 last:border-b-0 hover:shadow-md"
-                                        onClick={() => setSelectedAppointment(apt)}
-                                    >
-                                        <div className="flex justify-between items-start">
-                                            <div className="flex-1">
-                                                <div className="flex items-center mb-2">
-                                                    <h3 className="font-bold text-lg text-blue-900 mr-3">{getPatientName(apt.patientId)}</h3>
-                                                    <Badge
-                                                        variant="default"
-                                                        className={
-                                                            apt.status === "completed" ? "bg-green-500" :
-                                                                apt.status === "in-progress" ? "bg-blue-500" :
-                                                                    apt.status === "scheduled" ? "bg-yellow-500" :
-                                                                        apt.status === "cancelled" ? "bg-red-500" :
-                                                                            "bg-gray-500"
-                                                        }
-                                                    >
-                                                        {apt.status === "scheduled" ? "Pending" :
-                                                            apt.status === "in-progress" ? "Approved" :
-                                                                apt.status.charAt(0).toUpperCase() + apt.status.slice(1)}
-                                                    </Badge>
-                                                </div>
-                                                <p className="text-gray-700 mb-3">{apt.symptoms || "General Checkup"}</p>
-                                                <div className="flex flex-wrap gap-4 text-sm text-gray-600">
-                                                    <div className="flex items-center">
-                                                        <Calendar className="h-4 w-4 mr-1 text-blue-500" />
-                                                        <span>{new Date(apt.scheduledAt).toLocaleDateString()}</span>
-                                                    </div>
-                                                    <div className="flex items-center">
-                                                        <Clock className="h-4 w-4 mr-1 text-blue-500" />
-                                                        <span>{new Date(apt.scheduledAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
-                                                    </div>
-                                                    <div className="flex items-center">
-                                                        <AlertTriangle className="h-4 w-4 mr-1 text-blue-500" />
-                                                        <span className="capitalize">{apt.priority}</span>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            <div className="flex flex-col items-end">
-                                                <Badge variant="outline" className="text-xs bg-blue-100 text-blue-800 mb-2 border-blue-300">
-                                                    {apt.priority}
-                                                </Badge>
-                                                <Button
-                                                    variant="outline"
-                                                    size="sm"
-                                                    className="mt-2 border-blue-300 text-blue-700 hover:bg-blue-100 hover:shadow-sm"
-                                                    onClick={(e) => {
-                                                        e.stopPropagation();
-                                                        // In a real implementation, this would download appointment details
-                                                        toast({
-                                                            title: "Download Started",
-                                                            description: "Appointment details download has started",
-                                                            className: "bg-blue-50 border-blue-200 text-blue-800"
-                                                        });
-                                                    }}
+                                    <div className="flex justify-between items-start gap-4">
+                                        <div className="flex-1">
+                                            <div className="flex items-center gap-3 mb-2">
+                                                <h3 className={`font-black tracking-tight ${isActive ? "text-white" : "text-slate-900 text-lg"}`}>
+                                                    {getPatientName(apt.patientId)}
+                                                </h3>
+                                                <Badge
+                                                    className={`rounded-xl px-2.5 py-1 text-[9px] font-black uppercase tracking-widest border-none ${isActive ? "bg-white/20 text-white" :
+                                                        apt.status === "completed" ? "bg-emerald-500/10 text-emerald-600" :
+                                                            apt.status === "in-progress" ? "bg-blue-500/10 text-blue-600" :
+                                                                apt.status === "scheduled" ? "bg-indigo-500/10 text-indigo-600" :
+                                                                    "bg-slate-100 text-slate-400"
+                                                        }`}
                                                 >
-                                                    <Download className="h-4 w-4 mr-1" />
-                                                    PDF
-                                                </Button>
+                                                    {apt.status === "scheduled" ? "Pending" : apt.status}
+                                                </Badge>
+                                            </div>
+                                            
+                                            <p className={`text-xs font-medium leading-relaxed line-clamp-1 mb-4 ${isActive ? "text-blue-100/80" : "text-slate-500"}`}>
+                                                {apt.symptoms || "Standard Consultation"}
+                                            </p>
+
+                                            <div className="flex items-center gap-6">
+                                                <div className={`flex items-center text-[10px] font-black uppercase tracking-widest ${isActive ? "text-white/70" : "text-slate-400"}`}>
+                                                    <Clock className={`h-3 w-3 mr-1.5 ${isActive ? "text-white" : "text-blue-500"}`} />
+                                                    {new Date(apt.scheduledAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                                </div>
+                                                <div className={`flex items-center text-[10px] font-black uppercase tracking-widest ${isActive ? "text-white/70" : "text-slate-400"}`}>
+                                                    <TrendingUp className={`h-3 w-3 mr-1.5 ${isActive ? "text-white" : "text-rose-500"}`} />
+                                                    {apt.priority}
+                                                </div>
                                             </div>
                                         </div>
+                                        
+                                        {isActive && (
+                                            <div className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center shrink-0">
+                                                <ChevronRight className="h-4 w-4 text-white" />
+                                            </div>
+                                        )}
                                     </div>
-                                ))}
+
+                                    {/* Left Status Bar */}
+                                    <div className={`absolute top-0 left-0 w-1.5 h-full transition-colors ${isActive ? "bg-white/40" :
+                                        apt.priority === "critical" ? "bg-rose-500" :
+                                            apt.priority === "urgent" ? "bg-amber-500" : "bg-blue-400"
+                                        }`} />
+                                </div>
+                            );
+                        })
+                    )}
+                </div>
+
+                {/* ══ RIGHT: DETAILS / NOTES (Col 7) ═══════════════════════════════════ */}
+                <div className="col-span-12 lg:col-span-7 flex flex-col min-h-0">
+                    <div className="bg-white border-2 border-slate-100 rounded-[2.5rem] flex-1 overflow-y-auto custom-scrollbar shadow-2xl shadow-blue-900/5">
+                        {selectedAppointment ? (
+                            <div className="p-8">
+                                <AppointmentNotes
+                                    appointment={{
+                                        id: selectedAppointment.id,
+                                        patientId: selectedAppointment.patientId!,
+                                        patientName: getPatientName(selectedAppointment.patientId),
+                                        scheduledAt: selectedAppointment.scheduledAt || new Date(),
+                                        symptoms: selectedAppointment.symptoms || "Not specified",
+                                        priority: selectedAppointment.priority || "normal",
+                                        medicalHistory: {
+                                            conditions: [],
+                                            allergies: [],
+                                            medications: [],
+                                            surgeries: "",
+                                            familyHistory: ""
+                                        },
+                                        additionalNotes: selectedAppointment.notes || "",
+                                        status: selectedAppointment.status || "scheduled"
+                                    }}
+                                    onRecommendationsSent={() => {
+                                        setShowRecommendationsSent(true);
+                                        toast({
+                                            title: "Recommendations Issued",
+                                            description: "Patient has been notified of your clinical recommendations.",
+                                            className: "bg-emerald-50 border-emerald-200 text-emerald-800"
+                                        });
+                                    }}
+                                    readOnly={selectedAppointment.status === "completed"}
+                                />
+                            </div>
+                        ) : (
+                            <div className="h-full flex flex-col items-center justify-center text-center p-12 space-y-6">
+                                <div className="w-24 h-24 bg-blue-50 rounded-[2rem] flex items-center justify-center border border-blue-100/50">
+                                    <User className="h-10 w-10 text-blue-300" />
+                                </div>
+                                <div>
+                                    <h3 className="text-2xl font-black text-slate-900 mb-2">No Selection</h3>
+                                    <p className="text-slate-400 text-xs font-bold uppercase tracking-[0.2em] max-w-[280px] mx-auto leading-loose">
+                                        Select an active appointment from the list to view medical history and record clinical notes
+                                    </p>
+                                </div>
                             </div>
                         )}
-                    </CardContent>
-                </Card>
-            )}
+                    </div>
+                </div>
+            </div>
         </div>
     );
 }

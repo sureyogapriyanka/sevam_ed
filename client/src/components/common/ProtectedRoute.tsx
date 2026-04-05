@@ -14,7 +14,7 @@ export default function ProtectedRoute({ children, allowedRoles }: ProtectedRout
 
   useEffect(() => {
     if (!isLoading && !user) {
-      navigate("/login", { replace: true });
+      navigate("/", { replace: true });
     } else if (user && allowedRoles && !allowedRoles.includes(user.role)) {
       // Special case for profile edit route - allow both patients and doctors
       if (location.pathname === '/profile/edit' && (user.role === 'patient' || user.role === 'doctor')) {

@@ -6,6 +6,10 @@ import { Input } from '../../components/ui/input';
 import { Label } from '../../components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/card';
 import { useToast } from '../../hooks/use-toast';
+import { Badge } from '../../components/ui/badge';
+import { Lock, User as UserIcon, Bell, LogOut } from 'lucide-react';
+import { useAuth } from '../../contexts/AuthContext';
+import { useNavigate } from 'react-router-dom';
 
 interface User {
     id: string;
@@ -39,6 +43,12 @@ const Profile: React.FC = () => {
     const [patient, setPatient] = useState<Patient | null>(null);
     const { toast } = useToast();
     const queryClient = useQueryClient();
+    const { logout } = useAuth();
+    const navigate = useNavigate();
+
+    const handleLogout = async () => {
+        await logout();
+    };
 
     // Fetch user profile
     const { data: profileData, isLoading: isProfileLoading } = useQuery({
@@ -469,6 +479,54 @@ const Profile: React.FC = () => {
                         >
                             Update Profile Information
                         </Button>
+                    </div>
+                </CardContent>
+            </Card>
+            <Card>
+                <CardHeader>
+                    <CardTitle className="text-xl font-black text-slate-900 flex items-center">
+                        <Lock className="h-6 w-6 mr-3 text-emerald-500" />
+                        Account Security
+                    </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                    <div className="flex items-center justify-between p-6 bg-slate-50 rounded-3xl border border-slate-100 group hover:bg-slate-100 transition-all cursor-pointer">
+                        <div className="flex items-center">
+                            <div className="p-3 bg-blue-50 rounded-2xl mr-4 border border-blue-100">
+                                <UserIcon className="h-6 w-6 text-blue-600" />
+                            </div>
+                            <div>
+                                <p className="text-sm font-black text-slate-900">Two-Factor Authentication</p>
+                                <p className="text-xs text-slate-400 font-bold">Extra security for your medical data</p>
+                            </div>
+                        </div>
+                        <Badge className="bg-emerald-500/20 text-emerald-400 border-none rounded-xl px-4 py-1.5 text-[10px] font-black uppercase tracking-widest">Active</Badge>
+                    </div>
+
+                    <div className="flex items-center justify-between p-6 bg-slate-50 rounded-3xl border border-slate-100 group hover:bg-slate-100 transition-all cursor-pointer">
+                        <div className="flex items-center">
+                            <div className="p-3 bg-purple-50 rounded-2xl mr-4 border border-purple-100">
+                                <Bell className="h-6 w-6 text-purple-600" />
+                            </div>
+                            <div>
+                                <p className="text-sm font-black text-slate-900">Notification Preferences</p>
+                                <p className="text-xs text-slate-400 font-bold">Manage email and SMS alerts</p>
+                            </div>
+                        </div>
+                        <Button variant="ghost" className="text-slate-500 hover:text-white rounded-xl">Configure</Button>
+                    </div>
+
+                    <div className="flex items-center justify-between p-6 bg-slate-50 rounded-3xl border border-slate-100 group hover:bg-rose-50 transition-all cursor-pointer hover:border-rose-200">
+                        <div className="flex items-center">
+                            <div className="p-3 bg-rose-50 rounded-2xl mr-4 border border-rose-100">
+                                <LogOut className="h-6 w-6 text-rose-500" />
+                            </div>
+                            <div>
+                                <p className="text-sm font-black text-slate-900">Sign Out</p>
+                                <p className="text-xs text-slate-400 font-bold">Securely end your current session</p>
+                            </div>
+                        </div>
+                        <Button variant="ghost" className="text-rose-500 hover:text-rose-400 hover:bg-rose-500/10 rounded-xl" onClick={handleLogout}>Log Out</Button>
                     </div>
                 </CardContent>
             </Card>

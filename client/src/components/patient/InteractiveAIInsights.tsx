@@ -333,193 +333,150 @@ export default function InteractiveAIInsights() {
                         </CardContent>
                     </Card>
                 ) : (
-                    aiInsights.map((insight) => {
+                    aiInsights.slice(0, 1).map((insight) => {
                         const currentFeedback = feedback[insight.id];
                         const comment = commentInputs[insight.id] || '';
                         const imagePreview = imagePreviews[insight.id];
 
                         return (
-                            <Card key={insight.id} className="border border-slate-200 bg-white rounded-[2.5rem] shadow-sm hover:shadow-xl hover:border-blue-300 transition-all duration-500 overflow-hidden relative group">
-                                <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-blue-50 to-transparent rounded-bl-[100%] opacity-50 z-0" />
-                                <CardHeader className="bg-transparent border-b border-slate-100 p-8 pb-6 relative z-10">
-                                    <div className="flex items-center justify-between">
-                                        <div className="flex items-center space-x-4">
-                                            <div className="p-4 rounded-2xl bg-slate-50 border border-slate-100 group-hover:scale-110 transition-transform duration-500">
-                                                {insight.type === "health_tip" ? (
-                                                    <Heart className="h-6 w-6 text-rose-500" />
-                                                ) : insight.type === "medication_reminder" ? (
-                                                    <Zap className="h-6 w-6 text-amber-500" />
-                                                ) : (
-                                                    <Activity className="h-6 w-6 text-emerald-500" />
-                                                )}
-                                            </div>
-                                            <div>
-                                                <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-1">Observation Type</p>
-                                                <CardTitle className="text-2xl font-black text-slate-900 capitalize tracking-tight flex items-center">
-                                                    {insight.type.replace('_', ' ')}
-                                                </CardTitle>
-                                            </div>
+                            <Card key={insight.id} className="border-0 bg-white rounded-[2rem] shadow-xl hover:shadow-2xl transition-all duration-500 overflow-hidden relative group flex flex-col md:flex-row min-h-[400px]">
+                                {/* Left content side */}
+                                <div className="flex-1 p-8 md:p-12 flex flex-col justify-center relative z-10 bg-white md:w-7/12">
+                                    <div className="flex items-center mb-8">
+                                        <div className="p-2.5 bg-blue-50 rounded-xl mr-3 text-blue-600 shadow-sm border border-blue-100">
+                                            <Brain className="h-5 w-5" />
                                         </div>
-                                        <div className="text-right">
-                                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Generated</p>
-                                            <Badge variant="outline" className="text-sm font-bold bg-white text-slate-600 border-slate-200 px-4 py-1.5 rounded-full">
+                                        <h3 className="text-xl font-bold text-slate-900 tracking-tight">Your AI Health Assistant</h3>
+                                    </div>
+
+                                    <div className="mb-6 flex-grow">
+                                        <h4 className="text-[11px] font-black text-blue-600 uppercase tracking-[0.2em] mb-4">
+                                            {insight.type.replace('_', ' ')}
+                                        </h4>
+                                        <p className="text-xl md:text-2xl font-bold italic text-slate-700 leading-relaxed">
+                                            "{insight.content}"
+                                        </p>
+                                    </div>
+
+                                    <div className="flex items-center gap-1.5 mt-8 mb-6">
+                                        <div className="w-1.5 h-1.5 rounded-full bg-slate-200"></div>
+                                        <div className="w-1.5 h-1.5 rounded-full bg-slate-200"></div>
+                                        <div className="w-1.5 h-1.5 rounded-full bg-slate-200"></div>
+                                        <div className="w-6 h-1.5 rounded-full bg-blue-500"></div>
+                                    </div>
+
+                                    <div className="mt-8 pt-6 border-t border-slate-50 flex flex-col gap-4">
+                                        <div className="flex items-center justify-between">
+                                            <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Model Validation & Feedback</h4>
+                                            <Badge variant="outline" className="text-[10px] font-bold bg-white text-slate-500 border-slate-200 px-3 py-1 rounded-full">
                                                 {new Date(insight.createdAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}
                                             </Badge>
                                         </div>
-                                    </div>
-                                </CardHeader>
-                                <CardContent className="p-8 relative z-10 space-y-6">
-                                    <p className="text-lg text-slate-700 leading-relaxed font-medium">
-                                        "{insight.content}"
-                                    </p>
 
-                                    {/* Feedback section */}
-                                    <div className="pt-8 border-t border-slate-100 flex flex-col md:flex-row gap-8">
-                                        <div className="flex-1 space-y-4">
-                                            <h4 className="text-[11px] font-black text-slate-400 uppercase tracking-widest">Model Validation</h4>
+                                        <div className="flex items-center space-x-3 mt-2">
+                                            <Button
+                                                variant={currentFeedback?.feedback === 'positive' ? "default" : "outline"}
+                                                className={`rounded-xl px-4 py-2 flex-1 transition-all duration-300 font-bold text-sm h-12 ${currentFeedback?.feedback === 'positive'
+                                                    ? "bg-emerald-500 hover:bg-emerald-600 text-white shadow-lg shadow-emerald-500/30 border-none scale-[1.02]"
+                                                    : "border-slate-200 text-slate-600 hover:bg-emerald-50 hover:text-emerald-600 hover:border-emerald-200"
+                                                    }`}
+                                                onClick={() => handleFeedback(insight.id, 'positive')}
+                                            >
+                                                <ThumbsUp className={`h-4 w-4 mr-2 ${currentFeedback?.feedback === 'positive' ? '' : 'text-emerald-500'}`} />
+                                                Accurate
+                                            </Button>
+                                            <Button
+                                                variant={currentFeedback?.feedback === 'negative' ? "default" : "outline"}
+                                                className={`rounded-xl px-4 py-2 flex-1 transition-all duration-300 font-bold text-sm h-12 ${currentFeedback?.feedback === 'negative'
+                                                    ? "bg-rose-500 hover:bg-rose-600 text-white shadow-lg shadow-rose-500/30 border-none scale-[1.02]"
+                                                    : "border-slate-200 text-slate-600 hover:bg-rose-50 hover:text-rose-600 hover:border-rose-200"
+                                                    }`}
+                                                onClick={() => handleFeedback(insight.id, 'negative')}
+                                            >
+                                                <ThumbsDown className={`h-4 w-4 mr-2 ${currentFeedback?.feedback === 'negative' ? '' : 'text-rose-500'}`} />
+                                                Inaccurate
+                                            </Button>
+                                        </div>
 
-                                            {/* Feedback buttons */}
-                                            <div className="flex items-center space-x-3">
-                                                <Button
-                                                    variant={currentFeedback?.feedback === 'positive' ? "default" : "outline"}
-                                                    className={`rounded-xl px-6 py-5 flex-1 transition-all duration-300 font-bold ${currentFeedback?.feedback === 'positive'
-                                                        ? "bg-emerald-500 hover:bg-emerald-600 text-white shadow-lg shadow-emerald-500/30 border-none scale-105"
-                                                        : "border-slate-200 text-slate-600 hover:bg-emerald-50 hover:text-emerald-600 hover:border-emerald-200"
-                                                        }`}
-                                                    onClick={() => handleFeedback(insight.id, 'positive')}
-                                                >
-                                                    <ThumbsUp className={`h-5 w-5 mr-3 ${currentFeedback?.feedback === 'positive' ? '' : 'text-emerald-500'}`} />
-                                                    Accurate
-                                                </Button>
-                                                <Button
-                                                    variant={currentFeedback?.feedback === 'negative' ? "default" : "outline"}
-                                                    className={`rounded-xl px-6 py-5 flex-1 transition-all duration-300 font-bold ${currentFeedback?.feedback === 'negative'
-                                                        ? "bg-rose-500 hover:bg-rose-600 text-white shadow-lg shadow-rose-500/30 border-none scale-105"
-                                                        : "border-slate-200 text-slate-600 hover:bg-rose-50 hover:text-rose-600 hover:border-rose-200"
-                                                        }`}
-                                                    onClick={() => handleFeedback(insight.id, 'negative')}
-                                                >
-                                                    <ThumbsDown className={`h-5 w-5 mr-3 ${currentFeedback?.feedback === 'negative' ? '' : 'text-rose-500'}`} />
-                                                    Inaccurate
-                                                </Button>
-                                            </div>
+                                        <div className="mt-2 flex space-x-2">
+                                            <Button
+                                                variant="outline"
+                                                className="h-10 px-3 flex items-center border-blue-200 text-blue-600 hover:bg-blue-50 rounded-xl"
+                                                onClick={() => handleImageCapture(insight.id)}
+                                            >
+                                                <Camera className="h-4 w-4" />
+                                            </Button>
+                                            <input
+                                                type="text"
+                                                value={comment}
+                                                onChange={(e) => handleCommentChange(insight.id, e.target.value)}
+                                                placeholder="Add context..."
+                                                className="flex-1 px-4 py-2 border border-blue-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-400 text-sm text-slate-700 bg-slate-50/50"
+                                            />
+                                            <Button
+                                                onClick={() => submitComment(insight.id)}
+                                                disabled={!comment.trim()}
+                                                className="h-10 w-10 p-0 flex items-center justify-center bg-blue-600 hover:bg-blue-700 text-white rounded-xl"
+                                            >
+                                                <Send className="h-4 w-4" />
+                                            </Button>
+                                        </div>
 
-                                            {/* Image capture and preview */}
-                                            <div className="mb-3">
-                                                <Button
-                                                    variant="outline"
-                                                    size="sm"
-                                                    className="flex items-center border-blue-300 text-blue-700 hover:bg-blue-100"
-                                                    onClick={() => handleImageCapture(insight.id)}
-                                                >
-                                                    <Camera className="h-4 w-4 mr-1" />
-                                                    Capture View
-                                                </Button>
-
-                                                {/* Display patient views */}
-                                                {patientViews[insight.id] && patientViews[insight.id].length > 0 && (
-                                                    <div className="mt-2">
-                                                        <h4 className="text-xs font-medium text-blue-700 mb-1">Your Views:</h4>
-                                                        <div className="flex flex-wrap gap-2">
-                                                            {patientViews[insight.id].map((view, index) => (
-                                                                <div key={index} className="relative">
-                                                                    <img
-                                                                        src={view.imageUrl}
-                                                                        alt={`Patient view ${index + 1}`}
-                                                                        className="w-16 h-16 object-cover rounded border cursor-pointer hover:opacity-80 border-blue-300"
-                                                                        onClick={() => {
-                                                                            // Set as current preview when clicked
-                                                                            setImagePreviews(prev => ({
-                                                                                ...prev,
-                                                                                [insight.id]: view.imageUrl
-                                                                            }));
-                                                                        }}
-                                                                    />
-                                                                    <button
-                                                                        onClick={() => removePatientView(insight.id, index)}
-                                                                        className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600"
-                                                                    >
-                                                                        <X className="h-3 w-3" />
-                                                                    </button>
-                                                                </div>
-                                                            ))}
-                                                        </div>
-                                                    </div>
-                                                )}
-
+                                        {(patientViews[insight.id]?.length > 0 || imagePreview) && (
+                                            <div className="mt-2 flex flex-wrap gap-2">
                                                 {imagePreview && !patientViews[insight.id]?.some(view => view.imageUrl === imagePreview) && (
-                                                    <div className="mt-2 relative inline-block">
-                                                        <img
-                                                            src={imagePreview}
-                                                            alt="Captured view"
-                                                            className="w-24 h-24 object-cover rounded border border-blue-300"
-                                                        />
-                                                        <button
-                                                            onClick={() => removeImagePreview(insight.id)}
-                                                            className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600"
-                                                        >
+                                                    <div className="relative inline-block group/img">
+                                                        <img src={imagePreview} alt="Preview" className="w-12 h-12 object-cover rounded-lg border-2 border-blue-400" />
+                                                        <button onClick={() => removeImagePreview(insight.id)} className="absolute -top-1 -right-1 bg-rose-500 text-white rounded-full p-0.5 opacity-0 group-hover/img:opacity-100 transition-opacity">
                                                             <X className="h-3 w-3" />
                                                         </button>
                                                     </div>
                                                 )}
+                                                {patientViews[insight.id]?.map((view, index) => (
+                                                    <div key={index} className="relative inline-block group/img">
+                                                        <img src={view.imageUrl} alt={`View ${index + 1}`} className="w-12 h-12 object-cover rounded-lg border border-slate-200" onClick={() => setImagePreviews(prev => ({...prev, [insight.id]: view.imageUrl}))} />
+                                                        <button onClick={() => removePatientView(insight.id, index)} className="absolute -top-1 -right-1 bg-slate-800 text-white rounded-full p-0.5 opacity-0 group-hover/img:opacity-100 transition-opacity">
+                                                            <X className="h-3 w-3" />
+                                                        </button>
+                                                    </div>
+                                                ))}
                                             </div>
+                                        )}
 
-                                            {/* Comment input */}
-                                            <div className="flex space-x-2">
-                                                <input
-                                                    type="text"
-                                                    value={comment}
-                                                    onChange={(e) => handleCommentChange(insight.id, e.target.value)}
-                                                    placeholder="Add a comment about this insight..."
-                                                    className="flex-1 px-3 py-2 border border-blue-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm text-blue-900"
-                                                />
-                                                <Button
-                                                    onClick={() => submitComment(insight.id)}
-                                                    disabled={!comment.trim()}
-                                                    size="sm"
-                                                    className="flex items-center bg-blue-600 hover:bg-blue-700 text-white"
-                                                >
-                                                    <Send className="h-4 w-4" />
-                                                </Button>
+                                        {currentFeedback && (currentFeedback.feedback || currentFeedback.comment || currentFeedback.imageUrl) && (
+                                            <div className="mt-3 p-3 bg-slate-50 rounded-xl border border-slate-100 text-sm">
+                                                {currentFeedback.feedback && (
+                                                    <div className="flex items-center mb-1">
+                                                        <span className="font-semibold mr-2 text-slate-500 text-xs uppercase tracking-wider">Status:</span>
+                                                        <span className={currentFeedback.feedback === 'positive' ? "text-emerald-600 font-semibold" : "text-rose-600 font-semibold"}>
+                                                            {currentFeedback.feedback === 'positive' ? 'Verified Accurate' : 'Flagged Inaccurate'}
+                                                        </span>
+                                                    </div>
+                                                )}
+                                                {currentFeedback.comment && (
+                                                    <div className="text-slate-700 break-words line-clamp-2">
+                                                        <span className="font-semibold mr-1 text-slate-500 text-xs uppercase tracking-wider">Note:</span>
+                                                        {currentFeedback.comment}
+                                                    </div>
+                                                )}
                                             </div>
-
-                                            {/* Display submitted feedback */}
-                                            {currentFeedback && (
-                                                <div className="mt-3 p-3 bg-blue-50 rounded-lg border border-blue-200">
-                                                    {currentFeedback.feedback && (
-                                                        <div className="flex items-center text-sm mb-1">
-                                                            <span className="font-medium mr-2 text-blue-800">Feedback:</span>
-                                                            <Badge
-                                                                variant="secondary"
-                                                                className={currentFeedback.feedback === 'positive'
-                                                                    ? "bg-green-100 text-green-800"
-                                                                    : "bg-red-100 text-red-800"}
-                                                            >
-                                                                {currentFeedback.feedback === 'positive' ? 'Helpful' : 'Not Helpful'}
-                                                            </Badge>
-                                                        </div>
-                                                    )}
-                                                    {currentFeedback.comment && (
-                                                        <div className="text-sm text-blue-900">
-                                                            <span className="font-medium mr-2">Comment:</span>
-                                                            <span>{currentFeedback.comment}</span>
-                                                        </div>
-                                                    )}
-                                                    {currentFeedback.imageUrl && (
-                                                        <div className="mt-2">
-                                                            <span className="font-medium text-sm mr-2 text-blue-800">View:</span>
-                                                            <img
-                                                                src={currentFeedback.imageUrl}
-                                                                alt="Patient view"
-                                                                className="w-16 h-16 object-cover rounded border inline-block border-blue-300"
-                                                            />
-                                                        </div>
-                                                    )}
-                                                </div>
-                                            )}
-                                        </div>
+                                        )}
                                     </div>
-                                </CardContent>
+                                </div>
+
+                                {/* Right image side */}
+                                <div className="md:w-5/12 relative hidden md:block overflow-hidden bg-slate-50">
+                                    <div className="absolute inset-y-0 left-0 w-32 bg-gradient-to-r from-white via-white/90 to-transparent z-10" />
+                                    <img 
+                                        src={
+                                            insight.type === 'health_tip' ? 'https://images.unsplash.com/photo-1494597564530-871f2b93ac55?auto=format&fit=crop&w=800&q=80' : 
+                                            insight.type === 'medication_reminder' ? 'https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?auto=format&fit=crop&w=800&q=80' : 
+                                            'https://images.unsplash.com/photo-1576091160550-2173dba999ef?auto=format&fit=crop&w=800&q=80'
+                                        } 
+                                        alt="Visualization" 
+                                        className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-110 origin-right object-center" 
+                                    />
+                                </div>
                             </Card>
                         );
                     })

@@ -67,7 +67,7 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   }, []);
 
   const handleEditProfile = () => {
-    navigate("/profile/edit");
+    navigate("/profile");
     setIsAccountDropdownOpen(false);
   };
 
@@ -76,9 +76,8 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     setIsAccountDropdownOpen(false);
   };
 
-  const handleSignOut = () => {
-    logout();
-    navigate("/");
+  const handleSignOut = async () => {
+    await logout();
     setIsAccountDropdownOpen(false);
   };
 
@@ -107,8 +106,6 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
         { href: "/prescriptions", icon: FileText, label: "Prescriptions", active: location.pathname.startsWith("/prescriptions") },
         { href: "/doctor/queue", icon: Users, label: "Patient Queue", active: location.pathname.includes("/queue") },
         { href: "/doctor/patients", icon: FileText, label: "Patient Records", active: location.pathname.includes("/patients") },
-        { href: "/doctor/resources", icon: BookOpen, label: "Patient Resources", active: location.pathname.includes("/resources") },
-        { href: "/doctor/health-tips", icon: Heart, label: "Health Tips", active: location.pathname.includes("/health-tips") },
         { href: "/doctor/activity", icon: Activity, label: "Activity Log", active: location.pathname.includes("/activity") },
         { href: "/doctor/chat", icon: MessageSquare, label: "Internal Chat", active: location.pathname.includes("/chat") },
         { href: "/doctor/reports", icon: BarChart3, label: "Reports", active: location.pathname.includes("/reports") },
@@ -117,12 +114,11 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     } else if (user.role === "receptionist" || user.role === "reception") {
       return [
         { href: "/receptionist/dashboard", icon: Home, label: "Overview", active: location.pathname === "/receptionist/dashboard" },
-        { href: "/receptionist/register", icon: UserPlus, label: "Register Patient", active: location.pathname.includes("/register") },
         { href: "/receptionist/appointments", icon: Calendar, label: "Appointments", active: location.pathname.includes("/appointments") },
         { href: "/receptionist/payments", icon: CreditCard, label: "Payments & Billing", active: location.pathname.includes("/payments") },
-        { href: "/receptionist/verification", icon: Key, label: "Patient ID Verification", active: location.pathname.includes("/verification") },
         { href: "/receptionist/queue", icon: Users, label: "Patient Queue", active: location.pathname.includes("/queue") },
         { href: "/receptionist/opd", icon: Stethoscope, label: "Today's OPD", active: location.pathname.includes("/opd") },
+        { href: "/receptionist/chat", icon: MessageSquare, label: "Internal Chat", active: location.pathname.includes("/chat") },
       ];
     } else if (user.role === "patient") {
       return [
@@ -139,18 +135,16 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
         { href: "/nurse/vitals/history", icon: BarChart3, label: "Vitals History", active: location.pathname.includes("/vitals/history") },
         { href: "/nurse/wards", icon: Hospital, label: "Ward Management", active: location.pathname.includes("/nurse/wards") },
         { href: "/nurse/shift", icon: Calendar, label: "Shift Schedule", active: location.pathname.includes("/nurse/shift") },
-        { href: "/nurse/messages", icon: MessageSquare, label: "Messages", active: location.pathname.includes("/nurse/messages") },
+        { href: "/nurse/messages", icon: MessageSquare, label: "Internal Chat", active: location.pathname.includes("/messages") },
       ];
     } else if (user.role === "pharmacist") {
       return [
         { href: "/pharmacist/dashboard", icon: Home, label: "Overview", active: location.pathname === "/pharmacist/dashboard" },
-        { href: "/pharmacist/queue", icon: Users, label: "Dispense Medicines", active: location.pathname.includes("/dispense") },
+        { href: "/pharmacist/dispensing-hub", icon: Pill, label: "Dispense Medicines", active: location.pathname.includes("/dispense") || location.pathname.includes("/dispensing-hub") },
         { href: "/pharmacist/inventory", icon: Package, label: "Inventory", active: location.pathname.includes("/inventory") },
-        { href: "/pharmacist/search", icon: Search, label: "Search Medicines", active: location.pathname.includes("/search") },
-        { href: "/pharmacist/purchase-orders", icon: ClipboardList, label: "Purchase Orders", active: location.pathname.includes("/purchase-orders") },
-        { href: "/pharmacist/alerts", icon: AlertTriangle, label: "Alerts", active: location.pathname.includes("/alerts") },
+        { href: "/pharmacist/processed-orders", icon: ClipboardList, label: "Processed Orders", active: location.pathname.includes("/processed-orders") },
+        { href: "/pharmacist/dashboard?tab=chat", icon: MessageSquare, label: "Internal Chat", active: location.pathname.includes("/pharmacist/dashboard") && new URLSearchParams(location.search).get("tab") === "chat" },
         { href: "/pharmacist/reports", icon: BarChart3, label: "Reports", active: location.pathname.includes("/reports") },
-        { href: "/profile/edit", icon: User, label: "Profile", active: location.pathname.includes("/profile") },
       ];
     }
 
@@ -210,9 +204,8 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
               <Button
                 variant="ghost"
                 className="w-full justify-start text-white hover:bg-blue-700 hover:text-white"
-                onClick={() => {
-                  logout();
-                  navigate("/");
+                onClick={async () => {
+                  await logout();
                 }}
               >
                 <LogOut className="mr-2 h-4 w-4" />
@@ -254,9 +247,8 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
             <Button
               variant="ghost"
               className="w-full justify-start text-white hover:bg-blue-700 hover:text-white"
-              onClick={() => {
-                logout();
-                navigate("/");
+              onClick={async () => {
+                await logout();
               }}
             >
               <LogOut className="mr-2 h-4 w-4" />
@@ -313,7 +305,7 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
                           className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                         >
                           <Edit className="h-4 w-4 mr-2" />
-                          Edit Profile
+                          Settings & Profile
                         </button>
                         <button
                           onClick={handleChangePassword}

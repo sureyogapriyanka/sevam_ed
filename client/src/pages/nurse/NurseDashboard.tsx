@@ -47,12 +47,14 @@ export default function NurseDashboard() {
         return () => clearInterval(timer);
     }, []);
 
-    // Fetch Flow Data (Role-Filtered to 'checked_in')
-    const { data: awaitingVitals = [], isLoading: loadingFlow } = useQuery<any[]>({
+    // Fetch Flow Data (Filter for 'checked_in')
+    const { data: flowData = [], isLoading: loadingFlow } = useQuery<any[]>({
         queryKey: ["/api/flow/today"],
         queryFn: () => apiCall("/flow/today"),
         refetchInterval: 15000
     });
+
+    const awaitingVitals = flowData.filter(a => a.status === 'checked_in');
 
     // Stats calculations
     const stats = useMemo(() => {

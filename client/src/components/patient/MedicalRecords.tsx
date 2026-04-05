@@ -50,7 +50,7 @@ export default function MedicalRecords() {
     useEffect(() => {
         if (appointments && appointments.length > 0) {
             const transformedRecords = appointments
-                .filter((apt: any) => apt.status === "completed" && (apt.diagnosis || apt.treatment))
+                .filter((apt: any) => (apt.status === "completed" || apt.status === "dispensed"))
                 .map((apt: any) => ({
                     id: apt.id,
                     date: apt.scheduledAt,

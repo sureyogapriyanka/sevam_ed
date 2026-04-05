@@ -106,74 +106,81 @@ export default function QueueManagementPage() {
     };
 
     return (
-        <div className="space-y-6">
-            <div className="flex items-center justify-between bg-white p-4 rounded-xl shadow-sm border border-gray-100">
-                <div className="flex items-center gap-3">
-                    <div className="bg-emerald-600 p-2.5 rounded-xl">
+        <div className="space-y-6 animate-in fade-in duration-500">
+            {/* Header Section */}
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 pb-2">
+                <div className="flex items-center gap-4">
+                    <div className="bg-blue-600 p-3 rounded-2xl shadow-lg shadow-blue-200">
                         <Users className="h-6 w-6 text-white" />
                     </div>
                     <div>
-                        <h1 className="text-2xl font-black text-gray-900">Hospital OPD Queue</h1>
-                        <div className="flex items-center gap-2 text-xs font-bold text-gray-400 uppercase tracking-widest">
-                            <Calendar className="h-3 w-3" />
-                            {currentTime.toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' })}
-                            <span className="mx-1">|</span>
-                            {currentTime.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
+                        <h1 className="text-3xl font-black text-slate-900 tracking-tight">Hospital OPD Queue</h1>
+                        <div className="flex items-center gap-2 mt-1">
+                            <div className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
+                            <p className="text-slate-500 font-bold text-xs uppercase tracking-widest">
+                                {currentTime.toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })} • {currentTime.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })}
+                            </p>
                         </div>
                     </div>
                 </div>
-                <Button onClick={openDisplayBoard} className="bg-gray-900 hover:bg-black text-white font-black rounded-xl">
-                    <Monitor className="mr-2 h-4 w-4" /> OPEN DISPLAY BOARD
+                <Button 
+                    onClick={openDisplayBoard} 
+                    className="bg-slate-900 hover:bg-slate-800 text-white font-black rounded-2xl h-12 px-6 shadow-xl shadow-slate-200 gap-2 transition-all hover:scale-[1.02]"
+                >
+                    <Monitor className="h-4 w-4" /> OPEN PUBLIC DISPLAY
                 </Button>
             </div>
 
-            {/* Stats Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                <Card className="border-l-4 border-l-blue-500 shadow-sm">
-                    <CardContent className="p-4">
-                        <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Total in Queue</p>
-                        <h3 className="text-2xl font-black text-gray-900">{waitingQueue.length}</h3>
-                    </CardContent>
-                </Card>
-                <Card className="border-l-4 border-l-emerald-500 shadow-sm">
-                    <CardContent className="p-4">
-                        <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Currently Seeing</p>
-                        <h3 className="text-sm font-black text-emerald-600 truncate">{currentlySeeing?.patientName || "Chamber Empty"}</h3>
-                    </CardContent>
-                </Card>
-                <Card className="border-l-4 border-l-amber-500 shadow-sm">
-                    <CardContent className="p-4">
-                        <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Avg Wait Time</p>
-                        <h3 className="text-2xl font-black text-amber-600">12 mins</h3>
-                    </CardContent>
-                </Card>
-                <Card className="border-l-4 border-l-purple-500 shadow-sm">
-                    <CardContent className="p-4">
-                        <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Completed Today</p>
-                        <h3 className="text-2xl font-black text-purple-600">{completedToday.length}</h3>
-                    </CardContent>
-                </Card>
+            {/* Premium Stats Row */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <div className="bg-white border border-slate-100 p-6 rounded-[2rem] shadow-sm">
+                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-1">Total in Queue</p>
+                    <div className="flex items-baseline gap-2">
+                        <h3 className="text-3xl font-black text-slate-900 tracking-tighter">{waitingQueue.length}</h3>
+                        <Badge className="bg-blue-50 text-blue-600 border-none font-black text-[9px] px-2 py-0">PATIENTS</Badge>
+                    </div>
+                </div>
+
+                <div className="bg-white border border-slate-100 p-6 rounded-[2rem] shadow-sm">
+                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-1">Currently Seeing</p>
+                    <h3 className="text-lg font-black text-emerald-600 truncate">
+                        {currentlySeeing?.patientName || "Chamber Empty"}
+                    </h3>
+                </div>
+
+                <div className="bg-white border border-slate-100 p-6 rounded-[2rem] shadow-sm">
+                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-1">Avg Wait Time</p>
+                    <h3 className="text-3xl font-black text-amber-600 tracking-tighter italic">12 <span className="text-xs">mins</span></h3>
+                </div>
+
+                <div className="bg-blue-600 p-6 rounded-[2rem] shadow-xl shadow-blue-100">
+                    <p className="text-[10px] font-black text-blue-100 uppercase tracking-[0.2em] mb-1">Completed Today</p>
+                    <div className="flex items-baseline gap-2">
+                        <h3 className="text-3xl font-black text-white tracking-tighter">{completedToday.length}</h3>
+                        <CheckCircle2 className="h-4 w-4 text-blue-200" />
+                    </div>
+                </div>
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                {/* Add to Queue Panel */}
-                <Card className="lg:col-span-1 border-2 border-slate-100 shadow-md h-fit rounded-2xl">
-                    <CardHeader className="bg-slate-50 border-b p-4">
-                        <CardTitle className="text-lg font-black flex items-center gap-2">
+                {/* Token Issuance Panel */}
+                <Card className="lg:col-span-1 border-2 border-slate-50 shadow-xl rounded-[2.5rem] overflow-hidden bg-white">
+                    <div className="bg-slate-50/50 p-6 border-b border-slate-100">
+                        <h2 className="text-xl font-black text-slate-900 flex items-center gap-2">
                             <UserPlus className="h-5 w-5 text-blue-600" />
                             Token Issuance
-                        </CardTitle>
-                    </CardHeader>
-                    <CardContent className="p-6 space-y-4">
+                        </h2>
+                    </div>
+                    <CardContent className="p-8 space-y-6">
                         <div className="space-y-2">
-                            <Label className="text-xs font-bold text-gray-500 uppercase tracking-wider">Select Patient</Label>
+                            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest pl-1">Select Patient</label>
                             <Select onValueChange={setSelectedPatientId} value={selectedPatientId}>
-                                <SelectTrigger className="h-12 border-2 bg-white">
+                                <SelectTrigger className="h-12 border-2 bg-slate-50 rounded-2xl font-bold">
                                     <SelectValue placeholder="Search patient..." />
                                 </SelectTrigger>
-                                <SelectContent>
+                                <SelectContent className="rounded-2xl">
                                     {patients.map((p: any) => (
-                                        <SelectItem key={p._id} value={p._id}>
+                                        <SelectItem key={p._id} value={p._id} className="font-medium">
                                             {p.name || p.username}
                                         </SelectItem>
                                     ))}
@@ -182,133 +189,152 @@ export default function QueueManagementPage() {
                         </div>
 
                         <div className="space-y-2">
-                            <Label className="text-xs font-bold text-gray-500 uppercase tracking-wider">Assigned Doctor</Label>
+                            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest pl-1">Assigned Doctor</label>
                             <Select onValueChange={setSelectedDoctorId} value={selectedDoctorId}>
-                                <SelectTrigger className="h-12 border-2 bg-white">
+                                <SelectTrigger className="h-12 border-2 bg-slate-50 rounded-2xl font-bold">
                                     <SelectValue placeholder="Choose doctor..." />
                                 </SelectTrigger>
-                                <SelectContent>
+                                <SelectContent className="rounded-2xl">
                                     {doctors.map((d: any) => (
-                                        <SelectItem key={d.id} value={d.id}>Dr. {d.name}</SelectItem>
+                                        <SelectItem key={d.id} value={d.id} className="font-medium italic">Dr. {d.name}</SelectItem>
                                     ))}
                                 </SelectContent>
                             </Select>
                         </div>
 
-                        <div className="space-y-2">
-                            <Label className="text-xs font-bold text-gray-500 uppercase tracking-wider">Clinical Priority</Label>
+                        <div className="space-y-3">
+                            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest pl-1">Clinical Priority</label>
                             <div className="grid grid-cols-3 gap-2">
                                 {(['normal', 'urgent', 'emergency'] as const).map(p => (
                                     <button
                                         key={p}
                                         onClick={() => setPriority(p)}
-                                        className={`py-2 px-1 rounded-lg text-[10px] font-black uppercase tracking-widest border-2 transition-all ${priority === p
-                                            ? (p === 'emergency' ? 'bg-red-600 border-red-600 text-white' : p === 'urgent' ? 'bg-amber-500 border-amber-500 text-white' : 'bg-slate-900 border-slate-900 text-white')
-                                            : (p === 'emergency' ? 'border-red-100 text-red-500 hover:bg-red-50' : p === 'urgent' ? 'border-amber-100 text-amber-600 hover:bg-amber-50' : 'border-slate-100 text-slate-500 hover:bg-slate-50')
+                                        className={`py-3 px-1 rounded-2xl text-[9px] font-black uppercase tracking-tighter border-2 transition-all ${priority === p
+                                            ? (p === 'emergency' ? 'bg-rose-600 border-rose-600 text-white shadow-lg shadow-rose-100 scale-105' : p === 'urgent' ? 'bg-amber-500 border-amber-500 text-white shadow-lg shadow-amber-100 scale-105' : 'bg-blue-600 border-blue-600 text-white shadow-lg shadow-blue-100 scale-105')
+                                            : 'bg-white border-slate-100 text-slate-400 hover:border-slate-300'
                                             }`}
                                     >
-                                        {p === 'emergency' && '🚨 '} {p}
+                                        {p}
                                     </button>
                                 ))}
                             </div>
                         </div>
 
                         <Button
-                            className="w-full h-14 bg-blue-600 hover:bg-blue-700 text-white font-black rounded-xl shadow-lg shadow-blue-100 mt-4"
+                            className="w-full h-14 bg-slate-900 hover:bg-slate-800 text-white font-black rounded-2xl shadow-xl shadow-slate-200 mt-4 transition-all hover:scale-[1.02]"
                             disabled={!selectedPatientId || !selectedDoctorId || addToQueueMutation.isPending}
                             onClick={() => addToQueueMutation.mutate()}
                         >
-                            {addToQueueMutation.isPending ? "GENERATING TOKEN..." : "ISSUE TOKEN & ADD TO QUEUE"}
+                            {addToQueueMutation.isPending ? "GENERATING..." : "ISSUE CLINICAL TOKEN"}
                         </Button>
                     </CardContent>
                 </Card>
 
-                {/* Main Queue Column */}
-                <div className="lg:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-6">
-                    {/* Waiting Counter */}
-                    <Card className="border-t-4 border-t-amber-500 shadow-md rounded-2xl">
-                        <CardHeader className="flex flex-row items-center justify-between pb-2">
-                            <CardTitle className="text-lg font-black flex items-center gap-2">
+                {/* Queue Lists Column */}
+                <div className="lg:col-span-2 space-y-8">
+                    {/* Active Waiting List */}
+                    <Card className="border-none shadow-xl rounded-[2.5rem] bg-white overflow-hidden">
+                        <div className="bg-amber-500/5 p-6 border-b border-amber-100 flex items-center justify-between">
+                            <h2 className="text-xl font-black text-slate-900 flex items-center gap-2">
                                 <Clock className="h-5 w-5 text-amber-500" />
-                                Waiting Queue
-                            </CardTitle>
-                            <Badge className="bg-amber-100 text-amber-700 font-bold">{waitingQueue.length}</Badge>
-                        </CardHeader>
-                        <CardContent className="p-4 space-y-3">
-                            {waitingQueue.map((item: any, idx: number) => (
-                                <div
-                                    key={item.id}
-                                    className={`p-4 rounded-2xl border-2 transition-all relative overflow-hidden group ${item.priority === 'emergency'
-                                        ? 'border-red-400 bg-red-50 animate-pulse'
-                                        : item.priority === 'urgent'
-                                            ? 'border-amber-400 bg-amber-50'
-                                            : 'border-slate-100 bg-white hover:border-blue-200'
-                                        }`}
-                                >
-                                    <div className="flex justify-between items-start mb-2">
-                                        <div className="flex items-center gap-3">
-                                            <span className={`text-2xl font-black ${item.priority === 'emergency' ? 'text-red-700' : 'text-slate-900'}`}>
-                                                {item.tokenNumber || `T-${String(idx + 1).padStart(3, '0')}`}
-                                            </span>
-                                            <div>
-                                                <p className="font-black text-sm text-gray-900">{item.patientName}</p>
-                                                <p className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">DR. {item.doctorName || "General"}</p>
+                                Active Waiting Queue
+                            </h2>
+                            <Badge className="bg-amber-500 text-white font-black px-3 py-1 rounded-xl text-[10px]">{waitingQueue.length}</Badge>
+                        </div>
+                        <div className="p-6">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                {waitingQueue.map((item: any, idx: number) => (
+                                    <div
+                                        key={item.id}
+                                        className={`p-6 rounded-[2rem] border-2 transition-all relative group h-full flex flex-col justify-between ${item.priority === 'emergency'
+                                            ? 'border-rose-200 bg-rose-50/50'
+                                            : item.priority === 'urgent'
+                                                ? 'border-amber-200 bg-amber-50/50'
+                                                : 'border-slate-50 bg-slate-50/30 hover:border-blue-100'
+                                            }`}
+                                    >
+                                        <div>
+                                            <div className="flex justify-between items-start">
+                                                <span className={`text-3xl font-black italic tracking-tighter ${item.priority === 'emergency' ? 'text-rose-600' : 'text-slate-900'}`}>
+                                                    {item.tokenNumber || `T-${String(idx + 1).padStart(3, '0')}`}
+                                                </span>
+                                                <Badge className={`text-[8px] font-black uppercase tracking-widest ${
+                                                    item.priority === 'emergency' ? 'bg-rose-600' : 
+                                                    item.priority === 'urgent' ? 'bg-amber-500' : 'bg-blue-600'
+                                                }`}>
+                                                    {item.priority}
+                                                </Badge>
+                                            </div>
+                                            <div className="mt-4">
+                                                <p className="font-black text-base text-slate-800 leading-tight">{item.patientName}</p>
+                                                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">DR. {item.doctorName || "General"}</p>
                                             </div>
                                         </div>
-                                        <Badge className={`text-[9px] font-black uppercase ${item.priority === 'emergency' ? 'bg-red-600' : item.priority === 'urgent' ? 'bg-amber-500' : 'bg-slate-400'
-                                            }`}>
-                                            {item.priority}
-                                        </Badge>
-                                    </div>
-                                    <div className="flex justify-between items-center mt-4">
-                                        <p className="text-[10px] font-bold text-gray-400">WAITING: 15 MINS</p>
-                                        <Button
-                                            size="sm"
-                                            className="bg-emerald-600 hover:bg-emerald-700 h-8 font-black text-[10px] uppercase shadow-md"
-                                            onClick={() => callNextMutation.mutate(item.id)}
-                                        >
-                                            <Play className="mr-1 h-3 w-3 fill-current" /> Call Next
-                                        </Button>
-                                    </div>
-                                    {item.priority === 'emergency' && (
-                                        <div className="absolute top-0 right-0 p-1">
-                                            <AlertCircle className="h-4 w-4 text-red-600" />
+                                        
+                                        <div className="mt-6 flex items-center justify-between pt-4 border-t border-slate-100/50">
+                                            <div className="flex items-center gap-1.5">
+                                                <div className="h-1.5 w-1.5 rounded-full bg-amber-400" />
+                                                <p className="text-[9px] font-black text-slate-400 uppercase">Wait: 15m</p>
+                                            </div>
+                                            <Button
+                                                size="sm"
+                                                className="bg-emerald-500 hover:bg-emerald-600 text-white h-9 rounded-xl font-black text-[9px] uppercase px-4 shadow-lg shadow-emerald-50 transition-all hover:scale-105"
+                                                onClick={() => callNextMutation.mutate(item.id)}
+                                            >
+                                                CALL NEXT
+                                            </Button>
                                         </div>
-                                    )}
-                                </div>
-                            ))}
+                                        {item.priority === 'emergency' && (
+                                            <div className="absolute top-2 right-2 animate-bounce">
+                                                <AlertCircle className="h-4 w-4 text-rose-600 fill-rose-50" />
+                                            </div>
+                                        )}
+                                    </div>
+                                ))}
+                            </div>
                             {waitingQueue.length === 0 && (
-                                <div className="text-center py-12 text-gray-300 font-bold italic">No patients waiting.</div>
+                                <div className="text-center py-20">
+                                    <div className="bg-slate-50 w-16 h-16 rounded-3xl flex items-center justify-center mx-auto mb-4 border border-slate-100">
+                                        <Clock className="h-8 w-8 text-slate-200" />
+                                    </div>
+                                    <p className="text-slate-400 font-bold italic text-sm tracking-tight">Zero patients in active queue</p>
+                                </div>
                             )}
-                        </CardContent>
+                        </div>
                     </Card>
 
-                    {/* Completed Column */}
-                    <Card className="border-t-4 border-t-emerald-600 shadow-md rounded-2xl h-fit">
-                        <CardHeader className="flex flex-row items-center justify-between pb-2">
-                            <CardTitle className="text-lg font-black flex items-center gap-2">
-                                <CheckCircle2 className="h-5 w-5 text-emerald-600" />
-                                Processed
-                            </CardTitle>
-                            <Badge className="bg-emerald-100 text-emerald-700 font-bold">{completedToday.length}</Badge>
-                        </CardHeader>
-                        <CardContent className="p-4 space-y-2">
-                            {completedToday.map((item: any) => (
-                                <div key={item.id} className="flex items-center justify-between p-3 bg-slate-50/50 rounded-xl border border-slate-100">
-                                    <div className="flex items-center gap-3">
-                                        <span className="bg-slate-200 text-slate-600 font-black px-2 py-0.5 rounded text-[10px]">{item.tokenNumber}</span>
-                                        <div>
-                                            <p className="text-xs font-bold text-gray-800 leading-none mb-1">{item.patientName}</p>
-                                            <p className="text-[9px] text-gray-400 font-medium">DR. {item.doctorName}</p>
+                    {/* Processed Counter */}
+                    <Card className="border-none shadow-xl rounded-[2.5rem] bg-white overflow-hidden h-fit">
+                        <div className="bg-emerald-500/5 p-6 border-b border-emerald-100 flex items-center justify-between">
+                            <h2 className="text-lg font-black text-slate-700 flex items-center gap-2">
+                                <CheckCircle2 className="h-5 w-5 text-emerald-500" />
+                                Processed List
+                            </h2>
+                            <Badge className="bg-emerald-500 text-white font-black px-2 py-0.5 rounded-lg text-[9px]">{completedToday.length}</Badge>
+                        </div>
+                        <div className="p-6 max-h-[300px] overflow-y-auto">
+                            <div className="space-y-3">
+                                {completedToday.map((item: any) => (
+                                    <div key={item.id} className="group flex items-center justify-between p-4 bg-slate-50/50 rounded-2xl border border-slate-100 transition-all hover:border-emerald-100 hover:bg-emerald-50/10">
+                                        <div className="flex items-center gap-4">
+                                            <span className="bg-white text-slate-600 font-black px-3 py-1 rounded-xl text-[10px] border border-slate-100 group-hover:border-emerald-200 group-hover:text-emerald-700 transition-colors">
+                                                {item.tokenNumber}
+                                            </span>
+                                            <div>
+                                                <p className="text-sm font-black text-slate-800 leading-tight">{item.patientName}</p>
+                                                <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-0.5">DR. {item.doctorName}</p>
+                                            </div>
+                                        </div>
+                                        <div className="text-right">
+                                            <p className="text-[9px] text-emerald-600 font-black bg-emerald-50 px-2 py-1 rounded-lg border border-emerald-100">DISPENSED</p>
                                         </div>
                                     </div>
-                                    <p className="text-[9px] text-emerald-600 font-black">10M TAKEN</p>
-                                </div>
-                            ))}
-                            {completedToday.length === 0 && (
-                                <div className="text-center py-8 text-gray-300 font-medium italic text-xs">Queue record empty.</div>
-                            )}
-                        </CardContent>
+                                ))}
+                                {completedToday.length === 0 && (
+                                    <p className="text-center py-6 text-slate-300 font-bold italic text-[10px]">No finalized records today</p>
+                                )}
+                            </div>
+                        </div>
                     </Card>
                 </div>
             </div>

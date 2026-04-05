@@ -51,6 +51,8 @@ export default function ReceptionistDashboard() {
 
     // Check-in Modal State
     const [isCheckInOpen, setIsCheckInOpen] = useState(false);
+    const [isRegisterOpen, setIsRegisterOpen] = useState(false);
+    const [registerData, setRegisterData] = useState({ name: '', age: '', gender: 'Male', phone: '', doctorId: '' });
     const [selectedAppointment, setSelectedAppointment] = useState<any>(null);
     const [opdFee, setOpdFee] = useState(300);
     const [tendered, setTendered] = useState("");
@@ -144,36 +146,59 @@ export default function ReceptionistDashboard() {
         return true;
     });
 
+    const registerPatientMutation = useMutation({
+        mutationFn: (data: any) => apiCall('/flow/emergency-register', { method: 'POST', body: JSON.stringify(data) }),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ["/api/flow/today"] });
+            setIsRegisterOpen(false);
+            setRegisterData({ name: '', age: '', gender: 'Male', phone: '', doctorId: '' });
+            toast({ title: "Patient Registered", description: "Emergency patient added to queue." });
+        },
+        onError: () => toast({ title: "Registration Failed", variant: "destructive" })
+    });
+
     const upiString = selectedAppointment ? `upi://pay?pa=${import.meta.env.VITE_TILL_UPI_ID || 'seva@upi'}&pn=SevaOnline&am=${opdFee}&cu=INR&tn=OPD-${selectedAppointment.tokenNumber || selectedAppointment._id.slice(-6)}` : "";
 
     return (
         <div className="space-y-6 animate-in fade-in duration-500">
             {/* Top Header Section */}
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 pb-2">
                 <div>
-                    <h1 className="text-3xl font-black text-gray-900 tracking-tight flex items-center gap-3">
+                    <h1 className="text-4xl font-black text-slate-900 tracking-tight flex items-center gap-3">
                         Reception Console
-                        <NotificationBell />
+                        <div className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
                     </h1>
-                    <p className="text-gray-500 font-medium">Monitoring patient lifecycle and OPD flow.</p>
+                    <p className="text-slate-500 font-bold text-sm mt-1">Monitoring patient lifecycle and OPD flow.</p>
                 </div>
-                <div className="flex items-center gap-3">
-                    <div className="bg-white p-2 rounded-2xl shadow-sm border border-gray-100 flex items-center gap-3">
-                        <div className="bg-blue-50 p-2 rounded-xl">
-                            <Calendar className="h-5 w-5 text-blue-600" />
+                
+                <div className="flex items-center gap-4">
+                    <Button 
+                        onClick={() => setIsRegisterOpen(true)}
+                        className="bg-blue-600 hover:bg-blue-700 text-white font-black rounded-2xl px-6 h-12 shadow-xl shadow-blue-100 gap-2 text-xs transition-all hover:scale-[1.02]"
+                    >
+                        <UserPlus className="h-4 w-4" /> REGISTER NEW PATIENT
+                    </Button>
+
+                    <div className="h-12 w-[1px] bg-slate-200 hidden md:block mx-1" />
+
+                    <div className="flex items-center gap-3 bg-white p-1.5 rounded-[1.25rem] shadow-sm border border-slate-100 pr-4">
+                        <div className="bg-blue-50 p-2.5 rounded-xl text-blue-600">
+                            <Clock className="h-5 w-5" />
                         </div>
-                        <div className="pr-4">
-                            <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest leading-none mb-1">Live Status</p>
-                            <p className="text-sm font-black text-gray-900 leading-none">
+                        <div>
+                            <p className="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em] leading-none mb-1">Live Status</p>
+                            <p className="text-xs font-black text-slate-900 leading-none">
                                 {currentTime.toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })} • {currentTime.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })}
                             </p>
                         </div>
+                        <div className="pl-2 border-l border-slate-100">
+                            <NotificationBell />
+                        </div>
                     </div>
-                    {/* Profile Button */}
+
                     <button
                         onClick={() => setIsProfileOpen(true)}
-                        className="w-11 h-11 rounded-2xl bg-blue-600 text-white flex items-center justify-center shadow-lg hover:bg-blue-700 transition-colors font-black text-lg"
-                        title="Edit Profile"
+                        className="w-12 h-12 rounded-2xl bg-blue-600 text-white flex items-center justify-center shadow-lg hover:bg-blue-700 transition-all hover:scale-105 font-black shrink-0"
                     >
                         {profileImage
                             ? <img src={profileImage} alt="profile" className="w-full h-full rounded-2xl object-cover" />
@@ -182,47 +207,80 @@ export default function ReceptionistDashboard() {
                 </div>
             </div>
 
-            {/* Live Pipeline Stats */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                <Card className="border-none shadow-lg shadow-blue-100/50 bg-gradient-to-br from-blue-600 to-blue-700 text-white rounded-[2rem]">
-                    <CardContent className="p-6">
-                        <p className="text-blue-100 font-bold text-xs uppercase tracking-widest mb-1">Waiting for Vitals</p>
-                        <h3 className="text-4xl font-black">{stats.checkedIn}</h3>
-                        <div className="mt-4 flex items-center gap-1 text-blue-100 text-[10px] font-bold">
-                            <Users className="h-3 w-3" /> Patients in queue
+            {/* Premium Stats Row */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <div className="relative group overflow-hidden bg-white border border-slate-100 p-8 rounded-[2.5rem] shadow-sm transition-all hover:shadow-xl hover:border-blue-100">
+                    <div className="absolute -right-6 -top-6 w-32 h-32 bg-blue-50 rounded-full blur-3xl opacity-0 group-hover:opacity-100 transition-opacity" />
+                    <div className="relative z-10 flex flex-col justify-between h-full">
+                        <div className="flex justify-between items-start mb-6">
+                            <div className="p-4 bg-blue-50 text-blue-600 rounded-2xl">
+                                <Users size={24} />
+                            </div>
+                            <Badge className="bg-blue-100 text-blue-700 border-none px-3 font-black text-[9px] uppercase tracking-tighter">WAITING</Badge>
                         </div>
-                    </CardContent>
-                </Card>
+                        <div>
+                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-1">Waiting for Vitals</p>
+                            <div className="flex items-baseline gap-2">
+                                <h3 className="text-4xl font-black text-slate-900 tracking-tighter">{stats.checkedIn}</h3>
+                                <span className="text-[10px] font-bold text-slate-400">Patients</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
 
-                <Card className="border-none shadow-lg shadow-emerald-100/50 bg-gradient-to-br from-emerald-600 to-emerald-700 text-white rounded-[2rem]">
-                    <CardContent className="p-6">
-                        <p className="text-emerald-100 font-bold text-xs uppercase tracking-widest mb-1">With Doctors</p>
-                        <h3 className="text-4xl font-black">{stats.consulting}</h3>
-                        <div className="mt-4 flex items-center gap-1 text-emerald-100 text-[10px] font-bold">
-                            <Stethoscope className="h-3 w-3" /> Active consultations
+                <div className="relative group overflow-hidden bg-white border border-slate-100 p-8 rounded-[2.5rem] shadow-sm transition-all hover:shadow-xl hover:border-emerald-100">
+                    <div className="absolute -right-6 -top-6 w-32 h-32 bg-emerald-50 rounded-full blur-3xl opacity-0 group-hover:opacity-100 transition-opacity" />
+                    <div className="relative z-10 flex flex-col justify-between h-full">
+                        <div className="flex justify-between items-start mb-6">
+                            <div className="p-4 bg-emerald-50 text-emerald-600 rounded-2xl">
+                                <Stethoscope size={24} />
+                            </div>
+                            <Badge className="bg-emerald-100 text-emerald-700 border-none px-3 font-black text-[9px] uppercase tracking-tighter">IN SESSION</Badge>
                         </div>
-                    </CardContent>
-                </Card>
+                        <div>
+                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-1">With Doctors</p>
+                            <div className="flex items-baseline gap-2">
+                                <h3 className="text-4xl font-black text-slate-900 tracking-tighter">{stats.consulting}</h3>
+                                <span className="text-[10px] font-bold text-slate-400">Active</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
 
-                <Card className="border-none shadow-lg shadow-rose-100/50 bg-gradient-to-br from-rose-600 to-rose-700 text-white rounded-[2rem]">
-                    <CardContent className="p-6">
-                        <p className="text-rose-100 font-bold text-xs uppercase tracking-widest mb-1">Pending Invoices</p>
-                        <h3 className="text-4xl font-black">{stats.readyForBilling}</h3>
-                        <div className="mt-4 flex items-center gap-1 text-rose-100 text-[10px] font-bold">
-                            <AlertCircle className="h-3 w-3" /> Generate final bills
+                <div className="relative group overflow-hidden bg-white border border-slate-100 p-8 rounded-[2.5rem] shadow-sm transition-all hover:shadow-xl hover:border-rose-100">
+                    <div className="absolute -right-6 -top-6 w-32 h-32 bg-rose-50 rounded-full blur-3xl opacity-0 group-hover:opacity-100 transition-opacity" />
+                    <div className="relative z-10 flex flex-col justify-between h-full">
+                        <div className="flex justify-between items-start mb-6">
+                            <div className="p-4 bg-rose-50 text-rose-600 rounded-2xl">
+                                <Wallet size={24} />
+                            </div>
+                            <Badge className="bg-rose-100 text-rose-700 border-none px-3 font-black text-[9px] uppercase tracking-tighter">BILLING</Badge>
                         </div>
-                    </CardContent>
-                </Card>
+                        <div>
+                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-1">Pending Invoices</p>
+                            <div className="flex items-baseline gap-2">
+                                <h3 className="text-4xl font-black text-slate-900 tracking-tighter">{stats.readyForBilling}</h3>
+                                <span className="text-[10px] font-bold text-slate-400">Action Req.</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
 
-                <Card className="border-none shadow-lg shadow-blue-100/50 bg-white rounded-[2rem] border-2 border-blue-50">
-                    <CardContent className="p-6">
-                        <p className="text-blue-400 font-bold text-xs uppercase tracking-widest mb-1">OPD Revenue</p>
-                        <h3 className="text-4xl font-black text-blue-900">{formatINR(stats.todayRevenue)}</h3>
-                        <div className="mt-4 flex items-center gap-1 text-blue-600 text-[10px] font-bold">
-                            <Wallet className="h-3 w-3" /> Confirmed collections
+                <div className="relative group overflow-hidden bg-white border border-slate-100 p-8 rounded-[2.5rem] shadow-sm transition-all hover:shadow-xl hover:border-blue-100">
+                    <div className="absolute -right-6 -top-6 w-32 h-32 bg-blue-50 rounded-full blur-3xl opacity-0 group-hover:opacity-100 transition-opacity" />
+                    <div className="relative z-10 flex flex-col justify-between h-full">
+                        <div className="flex justify-between items-start mb-6">
+                            <div className="p-4 bg-blue-50 text-blue-600 rounded-2xl">
+                                <TrendingUp size={24} />
+                            </div>
+                            <Badge className="bg-blue-100 text-blue-700 border-none px-3 font-black text-[9px] uppercase tracking-tighter">REVENUE</Badge>
                         </div>
-                    </CardContent>
-                </Card>
+                        <div>
+                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-1">Today's Collections</p>
+                            <h3 className="text-3xl font-black text-slate-900 tracking-tighter italic">{formatINR(stats.todayRevenue)}</h3>
+                        </div>
+                    </div>
+                </div>
             </div>
 
             {/* Main Flow Table */}
@@ -268,7 +326,7 @@ export default function ReceptionistDashboard() {
                                 {filteredFlow.map((apt: any) => (
                                     <tr key={apt._id} className="hover:bg-blue-50/20 transition-colors">
                                         <td className="px-8 py-5">
-                                            <span className="bg-slate-900 text-white px-3 py-1 rounded-lg font-black text-xs">
+                                            <span className="bg-slate-100 text-slate-900 border border-slate-200 px-3 py-1 rounded-xl font-black text-[10px] tracking-tight">
                                                 {apt.tokenNumber || '---'}
                                             </span>
                                         </td>
@@ -288,17 +346,17 @@ export default function ReceptionistDashboard() {
                                         </td>
                                         <td className="px-8 py-5 text-right">
                                             {apt.status === 'booked' && (
-                                                <Button size="sm" className="bg-emerald-600 hover:bg-emerald-700 font-bold h-8 text-[10px]" onClick={() => { setSelectedAppointment(apt); setIsCheckInOpen(true); }}>
+                                                <Button size="sm" className="bg-emerald-600 hover:bg-emerald-700 font-bold h-9 rounded-xl px-4 text-[10px] shadow-lg shadow-emerald-100 transition-all hover:scale-105" onClick={() => { setSelectedAppointment(apt); setIsCheckInOpen(true); }}>
                                                     CHECK-IN
                                                 </Button>
                                             )}
                                             {(apt.status === 'consulted' || apt.status === 'billing') && (
-                                                <Button size="sm" className="bg-blue-600 hover:bg-blue-700 font-bold h-8 text-[10px]" onClick={() => navigate(`/receptionist/payments?aptId=${apt._id}`)}>
+                                                <Button size="sm" className="bg-blue-600 hover:bg-blue-700 font-bold h-9 rounded-xl px-4 text-[10px] shadow-lg shadow-blue-100 transition-all hover:scale-105" onClick={() => navigate(`/receptionist/payments?aptId=${apt._id}`)}>
                                                     GENERATE BILL
                                                 </Button>
                                             )}
                                             {apt.status === 'completed' && (
-                                                <Badge className="bg-slate-100 text-slate-400 border-none font-black">DONE ✓</Badge>
+                                                <Badge className="bg-slate-100 text-slate-400 border-none font-black px-3 py-1.5 rounded-lg text-[9px]">COMPLETED ✓</Badge>
                                             )}
                                         </td>
                                     </tr>
@@ -401,6 +459,91 @@ export default function ReceptionistDashboard() {
                     </DialogFooter>
                 </DialogContent>
             </Dialog>
+
+            {/* Emergency Registration Modal */}
+            <Dialog open={isRegisterOpen} onOpenChange={setIsRegisterOpen}>
+                <DialogContent className="max-w-md rounded-[2.5rem]">
+                    <DialogHeader>
+                        <DialogTitle className="text-2xl font-black flex items-center gap-2">
+                            <UserPlus className="h-6 w-6 text-blue-600" />
+                            Emergency Registration
+                        </DialogTitle>
+                    </DialogHeader>
+                    
+                    <div className="space-y-4 py-4">
+                        <div className="space-y-2">
+                            <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest pl-1">Patient Name</label>
+                            <Input 
+                                placeholder="Full Name" 
+                                className="h-12 rounded-2xl border-2 bg-slate-50 font-bold"
+                                value={registerData.name}
+                                onChange={e => setRegisterData({...registerData, name: e.target.value})}
+                            />
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-4">
+                            <div className="space-y-2">
+                                <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest pl-1">Age</label>
+                                <Input 
+                                    type="number" 
+                                    placeholder="Age" 
+                                    className="h-12 rounded-2xl border-2 bg-slate-50 font-bold"
+                                    value={registerData.age}
+                                    onChange={e => setRegisterData({...registerData, age: e.target.value})}
+                                />
+                            </div>
+                            <div className="space-y-2">
+                                <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest pl-1">Gender</label>
+                                <select 
+                                    className="w-full h-12 rounded-2xl border-2 bg-slate-50 font-bold px-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    value={registerData.gender}
+                                    onChange={e => setRegisterData({...registerData, gender: e.target.value})}
+                                >
+                                    <option>Male</option>
+                                    <option>Female</option>
+                                    <option>Other</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div className="space-y-2">
+                            <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest pl-1">Phone Number</label>
+                            <Input 
+                                placeholder="Phone" 
+                                className="h-12 rounded-2xl border-2 bg-slate-50 font-bold"
+                                value={registerData.phone}
+                                onChange={e => setRegisterData({...registerData, phone: e.target.value})}
+                            />
+                        </div>
+
+                        <div className="space-y-2">
+                            <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest pl-1">Assign Doctor</label>
+                            <select 
+                                className="w-full h-12 rounded-2xl border-2 bg-slate-50 font-bold px-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                value={registerData.doctorId}
+                                onChange={e => setRegisterData({...registerData, doctorId: e.target.value})}
+                            >
+                                <option value="">Select Doctor...</option>
+                                {flowData.map(a => a.doctorId).filter((v, i, a) => a.findIndex(t => t?._id === v?._id) === i).map(doc => (
+                                    <option key={doc?._id} value={doc?._id}>Dr. {doc?._name || doc?.name}</option>
+                                ))}
+                                <option value="mock-1">Dr. Sure Yoga Priyanka</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <DialogFooter>
+                        <Button 
+                            className="w-full h-14 bg-slate-900 hover:bg-slate-800 text-white font-black rounded-2xl text-base shadow-xl shadow-slate-200"
+                            onClick={() => registerPatientMutation.mutate(registerData)}
+                            disabled={registerPatientMutation.isPending || !registerData.name}
+                        >
+                            {registerPatientMutation.isPending ? "REGISTERING..." : "REGISTER & ADD TO QUEUE"}
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
+
             {/* Profile Edit Modal */}
             <Dialog open={isProfileOpen} onOpenChange={setIsProfileOpen}>
                 <DialogContent className="max-w-md rounded-[2rem]">

@@ -2,148 +2,156 @@ import { useState } from "react";
 import { useAuth } from "../../contexts/AuthContext";
 import { useQuery } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
-import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "../ui/card";
 import { Button } from "../ui/button";
 import { Badge } from "../ui/badge";
+import { apiCall } from "../../utils/api";
 import {
     Pill,
     Calendar,
     Download,
     Eye,
-    AlertCircle,
-    Clock
+    Receipt,
+    Clock,
+    CheckCircle2,
+    FileText
 } from "lucide-react";
-import { appointmentService } from "../../services/api";
-
-interface Prescription {
-    id: string;
-    date: string;
-    doctor: string;
-    medications: string[];
-    instructions: string;
-    status: string;
-    nextVisit?: string;
-}
 
 export default function Prescriptions() {
     const { patient } = useAuth();
     const navigate = useNavigate();
-    const [prescriptions, setPrescriptions] = useState<Prescription[]>([]);
 
-    const { data: appointments = [] } = useQuery({
-        queryKey: ["appointments", "patient", patient?.id],
+    const { data: prescriptions = [], isLoading } = useQuery({
+        queryKey: ["prescriptions", "patient", patient?.id],
         queryFn: async () => {
-            if (!patient?.id) return [];
-            const { data } = await appointmentService.getByUserId(patient.id);
-            return data || [];
+             if (!patient?.id) return [];
+             return apiCall(`/prescriptions/patient/${patient.id}`);
         },
         enabled: !!patient?.id
     });
 
-    // Transform appointments into prescriptions
-    // In a real app, this would come from a dedicated prescriptions API
-    const activePrescriptions = [
-        {
-            id: "1",
-            date: "2023-06-15",
-            doctor: "Dr. Sharma",
-            medications: ["Paracetamol 500mg", "Amoxicillin 250mg"],
-            instructions: "Take twice daily after meals for 7 days",
-            status: "active",
-            nextVisit: "2023-06-22"
-        },
-        {
-            id: "2",
-            date: "2023-05-20",
-            doctor: "Dr. Patel",
-            medications: ["Omeprazole 20mg", "Domperidone 10mg"],
-            instructions: "Take before breakfast for 14 days",
-            status: "completed"
-        }
-    ];
-
-    const handleViewPrescription = (prescriptionId: string) => {
-        // In a real app, this would open a detailed view of the prescription
-        console.log("Viewing prescription:", prescriptionId);
+    const handleViewReceipt = (rxBase: any) => {
+        // Implement detailed view / receipt download modal
+        alert(`Receipt viewing functionality activated for ${rxBase._id}`);
     };
 
-    const handleDownloadPrescription = (prescriptionId: string) => {
-        // In a real app, this would download the prescription as PDF
-        console.log("Downloading prescription:", prescriptionId);
-    };
+    if (isLoading) {
+        return <div className="p-8 text-center text-slate-500 animate-pulse">Loading Prescriptions Pipeline...</div>;
+    }
 
     return (
         <div className="space-y-6">
-            <div className="flex justify-between items-center">
-                <h2 className="text-2xl font-bold text-blue-900">My Prescriptions</h2>
+            <div className="flex justify-between items-center bg-white p-6 rounded-2xl border border-slate-200">
+                <div className="flex items-center gap-4">
+                    <div className="bg-blue-100 p-3 rounded-xl">
+                        <Pill className="h-6 w-6 text-blue-600" />
+                    </div>
+                    <div>
+                        <h2 className="text-2xl font-black text-slate-900 tracking-tight">Pharmacy & Prescriptions</h2>
+                        <p className="text-slate-500 text-sm font-bold uppercase tracking-widest mt-1">Digital Medical Repository</p>
+                    </div>
+                </div>
             </div>
 
-            {activePrescriptions.length === 0 ? (
-                <Card className="border-blue-200 bg-white">
-                    <CardContent className="p-8 text-center">
-                        <Pill className="h-12 w-12 mx-auto text-blue-400 mb-4" />
-                        <h3 className="text-lg font-medium text-blue-900 mb-2">No Prescriptions</h3>
-                        <p className="text-blue-700 mb-4">
-                            Your prescriptions will appear here after consultations with doctors.
+            {prescriptions.length === 0 ? (
+                <Card className="border-2 border-dashed border-slate-200 bg-slate-50">
+                    <CardContent className="p-12 text-center flex flex-col items-center">
+                        <div className="w-20 h-20 bg-white rounded-full flex items-center justify-center shadow-sm mb-6">
+                            <Pill className="h-10 w-10 text-slate-300" />
+                        </div>
+                        <h3 className="text-lg font-black text-slate-900 mb-2 uppercase tracking-tight">No Prescriptions Filed</h3>
+                        <p className="text-slate-500 font-medium mb-6 max-w-sm">
+                            Your prescriptions and digital pharmacy receipts will appear here after consultations.
                         </p>
-                        <Button className="bg-blue-600 hover:bg-blue-700" onClick={() => navigate('/patient?tab=book-appointment')}>Book a Consultation</Button>
+                        <Button className="font-bold tracking-widest uppercase rounded-xl" onClick={() => navigate('/patient?tab=book-appointment')}>Consult a Doctor</Button>
                     </CardContent>
                 </Card>
             ) : (
-                <div className="space-y-4">
-                    {activePrescriptions.map((prescription) => (
-                        <Card key={prescription.id} className="border-2 border-blue-300 hover:shadow-md transition-shadow bg-white">
-                            <CardHeader className="pb-3 bg-blue-50">
-                                <div className="flex justify-between items-start">
-                                    <div>
-                                        <CardTitle className="flex items-center space-x-2 text-blue-900">
-                                            <Pill className="h-5 w-5 text-blue-600" />
-                                            <span>Prescription from {prescription.doctor}</span>
-                                        </CardTitle>
-                                        <p className="text-sm text-blue-700 mt-1">
-                                            {new Date(prescription.date).toLocaleDateString()}
-                                        </p>
+                <div className="grid gap-6">
+                    {prescriptions.map((prescription: any) => {
+                        // Support checking if it is dispensed to show the Receipt button
+                        const isDispensed = prescription.status === "dispensed" || prescription.status === "completed";
+                        
+                        return (
+                            <Card key={prescription._id} className="border-2 border-slate-100 hover:border-blue-200 transition-all bg-white rounded-2xl overflow-hidden shadow-sm">
+                                <CardHeader className="bg-slate-50 border-b border-slate-100 p-5 flex flex-row items-center justify-between">
+                                    <div className="flex items-center gap-3">
+                                        <div className={`p-2 rounded-lg ${isDispensed ? 'bg-emerald-100 text-emerald-600' : 'bg-blue-100 text-blue-600'}`}>
+                                            {isDispensed ? <CheckCircle2 className="h-5 w-5" /> : <Pill className="h-5 w-5" />}
+                                        </div>
+                                        <div>
+                                            <CardTitle className="text-lg font-black text-slate-900 leading-tight">Rx. {prescription.doctorName || 'General Practitioner'}</CardTitle>
+                                            <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mt-1 flex items-center gap-1">
+                                                <Calendar className="h-3 w-3" /> {new Date(prescription.issuedAt || prescription.createdAt).toLocaleDateString()}
+                                            </p>
+                                        </div>
                                     </div>
                                     <Badge
-                                        variant={prescription.status === "active" ? "default" : "secondary"}
-                                        className={prescription.status === "active" ? "bg-green-500" : "bg-gray-500"}
+                                        className={`font-black uppercase tracking-widest text-[10px] px-3 py-1 rounded-full ${
+                                            isDispensed ? "bg-emerald-100 text-emerald-700 hover:bg-emerald-100" :
+                                            prescription.status === "cancelled" ? "bg-rose-100 text-rose-700 hover:bg-rose-100" :
+                                            "bg-blue-100 text-blue-700 hover:bg-blue-100"
+                                        }`}
                                     >
                                         {prescription.status}
                                     </Badge>
-                                </div>
-                            </CardHeader>
-                            <CardContent className="pt-4">
-                                <div className="space-y-4">
-                                    <div>
-                                        <p className="text-sm font-medium text-blue-800 mb-2">Medications</p>
-                                        <ul className="space-y-1">
-                                            {prescription.medications.map((med, index) => (
-                                                <li key={index} className="text-sm text-blue-700 flex items-start">
-                                                    <span className="mr-2 text-blue-500">•</span> {med}
-                                                </li>
-                                            ))}
-                                        </ul>
-                                    </div>
-
-                                    <div>
-                                        <p className="text-sm font-medium text-blue-800">Instructions</p>
-                                        <p className="text-sm text-blue-700">{prescription.instructions}</p>
-                                    </div>
-
-                                    {prescription.nextVisit && (
-                                        <div className="flex items-center text-sm text-blue-700">
-                                            <Clock className="h-4 w-4 mr-1 text-blue-500" />
-                                            <span>Next visit: {new Date(prescription.nextVisit).toLocaleDateString()}</span>
+                                </CardHeader>
+                                
+                                <CardContent className="p-6">
+                                    {prescription.diagnosis && (
+                                        <div className="mb-6 bg-amber-50 rounded-xl p-4 border border-amber-100 relative overflow-hidden">
+                                            <div className="absolute top-0 left-0 w-1 h-full bg-amber-400"></div>
+                                            <p className="text-[10px] font-black text-amber-700 uppercase tracking-widest mb-1">Clinical Diagnosis</p>
+                                            <p className="text-slate-800 font-bold">{prescription.diagnosis}</p>
                                         </div>
                                     )}
 
-                                    <div className="flex space-x-2 pt-2">
-
+                                    <div className="space-y-4">
+                                        <p className="text-xs font-black text-slate-400 uppercase tracking-[0.2em] border-b border-slate-100 pb-2">Prescribed Medications</p>
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                            {prescription.medicines?.map((med: any, index: number) => (
+                                                <div key={index} className="flex flex-col bg-slate-50 p-3 rounded-lg border border-slate-100">
+                                                    <span className="font-bold text-slate-900 text-sm">{med.name}</span>
+                                                    <span className="text-[10px] font-black uppercase text-slate-500 tracking-widest mt-1">
+                                                        {med.dosage} • {med.frequency} • {med.duration}
+                                                    </span>
+                                                </div>
+                                            ))}
+                                        </div>
                                     </div>
-                                </div>
-                            </CardContent>
-                        </Card>
-                    ))}
+
+                                    {prescription.notes && (
+                                        <div className="mt-6">
+                                            <p className="text-xs font-black text-slate-400 uppercase tracking-[0.2em] mb-2">Physician Notes</p>
+                                            <p className="text-sm text-slate-700 bg-slate-50 p-3 rounded-lg border border-slate-100 italic">{prescription.notes}</p>
+                                        </div>
+                                    )}
+                                </CardContent>
+
+                                <CardFooter className="bg-slate-50 border-t border-slate-100 p-4 flex gap-3 flex-wrap">
+                                    {isDispensed && (
+                                        <Button 
+                                            className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl gap-2 shadow-md shadow-emerald-500/20"
+                                            onClick={() => handleViewReceipt(prescription)}
+                                        >
+                                            <Receipt className="h-4 w-4" /> Download e-Receipt
+                                        </Button>
+                                    )}
+                                    <Button variant="outline" className="font-bold rounded-xl gap-2 border-slate-200 hover:bg-slate-100 text-slate-700">
+                                        <Download className="h-4 w-4" /> Save PDF Copy
+                                    </Button>
+                                    {prescription.appointmentId?.reportUrl && (
+                                        <Button 
+                                            className="bg-blue-600 hover:bg-blue-700 text-white font-black rounded-xl gap-2 shadow-lg shadow-blue-200 transition-all active:scale-95"
+                                            onClick={() => window.open(`${import.meta.env.VITE_API_URL}${prescription.appointmentId.reportUrl}`, '_blank')}
+                                        >
+                                            <FileText className="h-4 w-4" /> DOWNLOAD OFFICIAL MEDICAL REPORT
+                                        </Button>
+                                    )}
+                                </CardFooter>
+                            </Card>
+                        )
+                    })}
                 </div>
             )}
         </div>

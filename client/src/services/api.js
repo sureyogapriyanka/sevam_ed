@@ -144,3 +144,16 @@ export const knowledgeArticleService = {
   delete: (id) => apiRequest(`/knowledge-articles/${id}`, { method: 'DELETE' }),
   incrementViewCount: (id) => apiRequest(`/knowledge-articles/${id}/view`, { method: 'PATCH' }),
 };
+
+// ------------------------------
+// ✅ PRESCRIPTION SERVICE
+// ------------------------------
+export const prescriptionService = {
+  create: (data) => apiRequest('/prescriptions', { method: 'POST', body: JSON.stringify(data) }),
+  getAll: () => apiRequest('/prescriptions', { method: 'GET' }),
+  getById: (id) => apiRequest(`/prescriptions/${id}`, { method: 'GET' }),
+  getByPatientId: (patientId) => apiRequest(`/prescriptions/patient/${patientId}`, { method: 'GET' }),
+  getByAppointmentId: (appointmentId) => apiRequest(`/prescriptions/appointment/${appointmentId}`, { method: 'GET' }),
+  update: (id, data) => apiRequest(`/prescriptions/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+  delete: (id) => apiRequest(`/prescriptions/${id}`, { method: 'DELETE' }),
+};

@@ -168,12 +168,6 @@ export default function PrescriptionDetailPage() {
                         </span>
                     </div>
                     <div className="ml-auto flex flex-wrap gap-2">
-                        {canEdit && (
-                            <Link to={`/prescriptions/edit/${presc._id}`}
-                                className="flex items-center gap-1.5 bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-700 transition">
-                                ✏️ Edit
-                            </Link>
-                        )}
                         <button onClick={() => window.print()}
                             className="flex items-center gap-1.5 bg-gray-700 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-gray-800 transition">
                             🖨️ Print

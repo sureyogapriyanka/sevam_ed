@@ -57,7 +57,7 @@ export default function AppointmentForm({ onSuccess }: { onSuccess: () => void }
         patientId: patient?.id || "",
         doctorId: "",
         scheduledAt: new Date().toISOString(),
-        status: "pending",
+        status: "booked",
         priority: "normal",
         symptoms: "",
         notes: ""
@@ -292,7 +292,7 @@ Additional Notes: ${additionalNotes || "None"}
             console.log("No patient ID found, completing flow with local success");
             toast({
                 title: "Success",
-                description: "Appointment requested! Please complete your payment online or visit the nearest reception to finalize your booking. (Demo Mode: Patient profile not found)",
+                description: "Appointment requested! Please complete your payment online or visit the nearest reception to finalize your booking.",
                 variant: "default",
                 className: "bg-blue-50 border-blue-200 text-blue-800 shadow-lg rounded-lg"
             });
@@ -315,7 +315,7 @@ Additional Notes: ${additionalNotes || "None"}
                 patientId: patientId,
                 doctorId: selectedDoctor,
                 scheduledAt: scheduledAt.toISOString(),
-                status: "pending",
+                status: "booked",
                 priority,
                 symptoms,
                 notes: medicalHistoryNotes
@@ -664,7 +664,7 @@ Additional Notes: ${additionalNotes || "None"}
                                     <div>
                                         <p className="text-blue-800 font-medium">Payment Required to Finalize</p>
                                         <p className="text-blue-700 mt-1">
-                                            Your appointment will be listed as <span className="font-bold">Pending</span>. You can pay online or visit the reception to secure this slot.
+                                            Your appointment will be listed as <span className="font-bold">Booked</span>. You can pay online or visit the reception to secure this slot.
                                         </p>
                                     </div>
                                 </div>

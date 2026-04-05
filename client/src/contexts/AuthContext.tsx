@@ -211,17 +211,26 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const logout = async () => {
+    // Log activity if user is present
     if (user?.id) {
-      await logActivity(user.id, "logout", "User logged out");
+      try {
+        await logActivity(user.id, "logout", "User logged out");
+      } catch (error) {
+        console.error("Failed to log logout activity:", error);
+      }
     }
 
+    // Clear all auth-related state
     setUser(null);
     setPatient(null);
     setSessionData(null);
-    localStorage.removeItem("user");
-    localStorage.removeItem("patient");
-    localStorage.removeItem("sessionData");
-    localStorage.removeItem("token");
+    
+    // Clear all auth-related storage
+    const itemsToRemove = ["user", "patient", "sessionData", "token"];
+    itemsToRemove.forEach(item => localStorage.removeItem(item));
+    
+    // Force a redirect to the root page and reload to clear any remaining in-memory state
+    window.location.href = "/";
   };
 
   const updateUser = (userData: Partial<User>) => {

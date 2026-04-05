@@ -367,10 +367,9 @@ export default function BillsListPage() {
                                         <tr key={bill._id} className="hover:bg-gray-50 transition">
                                             {/* Bill Number */}
                                             <td className="px-4 py-3">
-                                                <Link to={`/billing/${bill._id}`}
-                                                    className="font-mono text-blue-600 hover:underline font-semibold text-xs">
+                                                <span className="font-mono text-gray-800 font-semibold text-xs">
                                                     {bill.billNumber}
-                                                </Link>
+                                                </span>
                                             </td>
                                             {/* Patient */}
                                             <td className="px-4 py-3 font-medium text-gray-800">{bill.patientName}</td>
@@ -397,10 +396,7 @@ export default function BillsListPage() {
                                             {/* Actions */}
                                             <td className="px-4 py-3">
                                                 <div className="flex items-center gap-1.5">
-                                                    <Link to={`/billing/${bill._id}`}
-                                                        className="p-1.5 rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-100 transition" title="View">
-                                                        👁️
-                                                    </Link>
+
                                                     {canPay && (
                                                         <button onClick={() => setPayBill(bill)}
                                                             className="p-1.5 rounded-lg bg-green-50 text-green-600 hover:bg-green-100 transition" title="Pay">

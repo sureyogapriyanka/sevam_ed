@@ -9,7 +9,7 @@ import { Badge } from "../ui/badge";
 import { Progress } from "../ui/progress";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "../../lib/queryClient";
-import { Heart, Activity, Droplets, Moon, Calculator, Plus, Flame, ArrowUpRight, CheckCircle2 } from "lucide-react";
+import { Heart, Activity, Droplets, Moon, Calculator, Plus, Flame, ArrowUpRight, CheckCircle2, Zap } from "lucide-react";
 import { useToast } from "../../hooks/use-toast";
 import { FitnessData } from "../../types/schema";
 import { fitnessDataService, patientService } from "../../services/api";

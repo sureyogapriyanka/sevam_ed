@@ -50,10 +50,12 @@ interface RecommendationTemplate {
 
 export default function AppointmentNotes({
     appointment,
-    onRecommendationsSent
+    onRecommendationsSent,
+    readOnly = false
 }: {
     appointment: Appointment;
     onRecommendationsSent: () => void;
+    readOnly?: boolean;
 }) {
     const { user } = useAuth();
     const { t } = useLanguage();
@@ -307,6 +309,7 @@ This document is for patient reference only. Please follow up with your doctor f
                                     onChange={(e) => setDiagnosis(e.target.value)}
                                     placeholder="Enter your diagnosis..."
                                     className="min-h-[100px]"
+                                    disabled={readOnly}
                                 />
                             </div>
 
@@ -318,16 +321,19 @@ This document is for patient reference only. Please follow up with your doctor f
                                     onChange={(e) => setDoctorNotes(e.target.value)}
                                     placeholder="Enter your observations and notes..."
                                     className="min-h-[150px]"
+                                    disabled={readOnly}
                                 />
                             </div>
 
-                            <Button
-                                onClick={handleSaveNotes}
-                                disabled={updateAppointmentMutation.isPending}
-                            >
-                                <Save className="h-4 w-4 mr-2" />
-                                {updateAppointmentMutation.isPending ? "Saving..." : "Save Notes"}
-                            </Button>
+                            {!readOnly && (
+                                <Button
+                                    onClick={handleSaveNotes}
+                                    disabled={updateAppointmentMutation.isPending}
+                                >
+                                    <Save className="h-4 w-4 mr-2" />
+                                    {updateAppointmentMutation.isPending ? "Saving..." : "Save Notes"}
+                                </Button>
+                            )}
                         </div>
                     </CardContent>
                 </Card>
@@ -350,6 +356,7 @@ This document is for patient reference only. Please follow up with your doctor f
                                     onChange={(e) => setDoctorRecommendations(e.target.value)}
                                     placeholder="Enter your treatment recommendations..."
                                     className="min-h-[100px]"
+                                    disabled={readOnly}
                                 />
                             </div>
 
@@ -359,6 +366,7 @@ This document is for patient reference only. Please follow up with your doctor f
                                     id="medications"
                                     placeholder="Enter medications (comma separated)"
                                     onChange={(e) => setMedications(e.target.value.split(",").map(m => m.trim()))}
+                                    disabled={readOnly}
                                 />
                                 {medications.length > 0 && (
                                     <div className="mt-2 flex flex-wrap gap-2">

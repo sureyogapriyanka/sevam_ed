@@ -12,11 +12,12 @@ import {
   aiInsightService,
   activityLogService,
   authService,
-  userService
+  userService,
+  prescriptionService
 } from "../../services/api";
 import FitnessTracker from "../../components/fitness/FitnessTracker";
 import KnowledgeWidget from "../../components/knowledge/KnowledgeWidget";
-import ChatInterface from "../../components/chat/ChatInterface";
+import SevaMedConnect from "../../components/chat/SevaMedConnect";
 import ActivityLog from "../../components/common/ActivityLog";
 import MedicalRecords from "../../components/patient/MedicalRecords";
 import Prescriptions from "../../components/patient/Prescriptions";
@@ -95,22 +96,17 @@ export default function PatientDashboard() {
       image: "https://images.unsplash.com/photo-1584036561566-baf8f5f1b144?auto=format&fit=crop&q=80&w=2000"
     },
     {
-      title: "Bio-Tech Optimization",
-      description: "Real-time metabolic monitoring allows our AI to adjust your nutritional protocols before energy deficits impact your clinical performance.",
-      image: "https://images.unsplash.com/photo-1576086213369-97a306d36557?auto=format&fit=crop&q=80&w=2000"
+      title: "Strategic Wellness",
+      description: "Quitting smoking is the highest-impact bio-optimization you can perform. Clinical smoking cessation protocols reduce cardiac risk by 50% within 12 months.",
+      image: "https://images.unsplash.com/photo-1526434426615-1abe81efcb0b?auto=format&fit=crop&q=80&w=2000"
     },
     {
-      title: "Cognitive Hydration",
-      description: "Maintaining precise hydration levels of 3.2L/day optimizes neural signal transduction and dramatically improves long-term memory retrieval.",
-      image: "https://images.unsplash.com/photo-1550505393-fa197233298d?auto=format&fit=crop&q=80&w=2000"
+       title: "Standard Hydration Algorithm",
+       description: "Maintaining precise hydration levels of 3.2L/day optimizes neural signal transduction and dramatically improves bio-static stability.",
+       image: "https://images.unsplash.com/photo-1550505393-fa197233298d?auto=format&fit=crop&q=80&w=2000"
     },
     {
-      title: "Vital Rhythm (Heart Health)",
-      description: "Daily cardiovascular pacing protocols can reduce long-term cardiac strain by 22%, ensuring optimal bio-static stability through age 80+.",
-      image: "https://images.unsplash.com/photo-1628177142898-93e36e4e3a50?auto=format&fit=crop&q=80&w=2000"
-    },
-    {
-      title: "Regenerative Sleep",
+      title: "Neural Refresh (REM Optimization)",
       description: "Optimizing your REM cycle through adaptive temperature control and neural-sync protocols accelerates tissue repair by 40%.",
       image: "https://images.unsplash.com/photo-1541781774459-bb2af2f05b55?auto=format&fit=crop&q=80&w=2000"
     }
@@ -174,6 +170,17 @@ export default function PatientDashboard() {
       return data || [];
     },
     enabled: !!user?.id
+  });
+
+  // Fetch prescriptions for linking in appointments
+  const { data: myPrescriptions = [] } = useQuery<any[]>({
+    queryKey: ["prescriptions", "patient", patient?.id],
+    queryFn: async () => {
+      if (!patient?.id) return [];
+      const { data } = await prescriptionService.getByPatientId(patient.id);
+      return data || [];
+    },
+    enabled: !!patient?.id
   });
 
   // Fetch doctors for name resolution
@@ -275,9 +282,8 @@ export default function PatientDashboard() {
     { id: "prescriptions", label: "Prescriptions", icon: Pill },
     { id: "knowledge", label: "Articles & Knowledge", icon: BookOpen },
     { id: "activity", label: "Activity", icon: Clock },
-    { id: "chat", label: "Internal Chat", icon: MessageCircle },
-    { id: "profile", label: "Profile", icon: User },
-    { id: "settings", label: "Settings", icon: Cog }
+    { id: "chat", label: "Medical Chat", icon: MessageCircle },
+    { id: "profile", label: "Profile", icon: User }
   ];
 
   // Handle profile image upload
@@ -351,7 +357,6 @@ export default function PatientDashboard() {
   const handleLogout = async () => {
     try {
       await logout();
-      navigate("/");
     } catch (error) {
       console.error("Logout error:", error);
     }
@@ -640,7 +645,13 @@ export default function PatientDashboard() {
                     }`}
                 >
                   <Icon className={`h-5 w-5 mr-3.5 transition-transform duration-300 ${isActive ? 'scale-110' : 'group-hover:scale-110 group-hover:text-blue-400'}`} />
-                  <span className="font-medium tracking-wide">{t(item.label.toLowerCase().replace(/\s+/g, "_")) || item.label}</span>
+                  <span className="font-medium tracking-wide">
+                    {(() => {
+                      const key = item.label.toLowerCase().replace(/\s+/g, "_");
+                      const translated = t(key);
+                      return translated === key ? item.label : translated;
+                    })()}
+                  </span>
                   {isActive && (
                     <div className="absolute left-0 w-1.5 h-6 bg-white rounded-r-full shadow-[0_0_10px_white]" />
                   )}
@@ -744,12 +755,12 @@ export default function PatientDashboard() {
               <div className="hidden sm:block">
                 <div className="flex items-center gap-3 mb-1">
                   <h1 className="text-2xl font-black text-slate-900 tracking-tight">
-                    {user?.name?.split(' ')[0]}'s Command Center
+                    {user?.name?.split(' ')[0]}'s Health Dashboard
                   </h1>
                   <Badge className="bg-blue-600/10 text-blue-600 border-none hover:bg-blue-600/20 transition-colors">v2.0 Beta</Badge>
                 </div>
                 <p className="text-xs font-bold text-slate-400 tracking-[0.3em] uppercase">
-                  System Online ― {currentTime.toLocaleDateString('en-IN', { weekday: 'long', day: 'numeric', month: 'short' })}
+                  Your Medical Portal ― {currentTime.toLocaleDateString('en-IN', { weekday: 'long', day: 'numeric', month: 'short' })}
                 </p>
               </div>
             </div>
@@ -1177,6 +1188,21 @@ export default function PatientDashboard() {
                                 Diagnostic PDF
                               </Button>
                             )}
+                            {apt.status === "completed" && myPrescriptions.some(rx => 
+                                (rx.appointmentId === (apt as any)._id || rx.appointmentId === apt.id) || 
+                                (rx.appointmentId?._id === (apt as any)._id || rx.appointmentId?._id === apt.id)
+                              ) && (
+                              <Button
+                                className="bg-emerald-600 hover:bg-emerald-700 text-white rounded-2xl px-6 py-4 flex-1 lg:flex-none font-bold shadow-lg shadow-emerald-500/20"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setActiveTab("prescriptions");
+                                }}
+                              >
+                                <Pill className="h-4 w-4 mr-2" />
+                                View Prescription
+                              </Button>
+                            )}
                             <Button
                               variant="ghost"
                               className="text-slate-400 hover:text-slate-600 rounded-2xl px-6 py-4 flex-1 lg:flex-none font-bold text-xs uppercase tracking-widest"
@@ -1199,7 +1225,7 @@ export default function PatientDashboard() {
                                 className="text-rose-500 hover:text-rose-600 hover:bg-rose-50 rounded-2xl px-6 py-4 flex-1 lg:flex-none font-bold text-xs uppercase tracking-widest"
                                 onClick={(e) => {
                                   e.stopPropagation();
-                                  handleCancelAppointment(apt.id || apt._id!);
+                                  handleCancelAppointment(apt.id || (apt as any)._id!);
                                 }}
                                 disabled={cancelAppointmentMutation.isPending}
                               >
@@ -1319,12 +1345,16 @@ export default function PatientDashboard() {
           {activeTab === "chat" && (
             <div className="max-w-7xl mx-auto h-[calc(100vh-200px)] flex flex-col animate-in fade-in slide-in-from-bottom-4 duration-700">
               <div className="mb-10">
-                <h2 className="text-3xl font-black text-slate-900 tracking-tight mb-2">Secure Comms</h2>
-                <p className="text-slate-400 font-bold text-xs uppercase tracking-[0.2em]">Encrypted internal medical communications</p>
+                <h2 className="text-3xl font-black text-slate-900 tracking-tight mb-2">Chat with Medical Personnels</h2>
+                <p className="text-slate-400 font-bold text-xs uppercase tracking-[0.2em]">Secure encrypted communications with your healthcare providers</p>
               </div>
-              <div className="flex-1 bg-white border border-slate-200 p-10 rounded-[3rem] shadow-sm relative overflow-hidden">
+              <div className="flex-1 bg-white border border-slate-200 rounded-[3rem] shadow-sm relative overflow-hidden">
                 <div className="absolute top-0 right-0 w-64 h-64 bg-pink-100 rounded-full blur-3xl -z-10 opacity-50" />
-                <ChatInterface />
+                <SevaMedConnect 
+                  isPatient={true} 
+                  title={<h1 className="text-2xl font-black text-slate-900 tracking-tight uppercase">Chat with <span className="text-blue-600">Medical Personnels</span></h1>} 
+                  currentUser={{ name: user?.name || "Patient", avatar: "PT" }}
+                />
               </div>
             </div>
           )}
@@ -1439,65 +1469,7 @@ export default function PatientDashboard() {
             </div>
           )}
 
-          {activeTab === "settings" && (
-            <div className="max-w-4xl mx-auto space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-700">
-              <div className="mb-10">
-                <h2 className="text-3xl font-black text-slate-900 tracking-tight mb-2">System Configuration</h2>
-                <p className="text-slate-400 font-bold text-xs uppercase tracking-[0.2em]">Operational parameters & security protocols</p>
-              </div>
 
-              <div className="space-y-8">
-                <Card className="bg-white border border-slate-200 rounded-[3rem] overflow-hidden shadow-sm">
-                  <CardHeader className="p-10 pb-4">
-                    <CardTitle className="text-xl font-black text-slate-900 flex items-center">
-                      <Lock className="h-6 w-6 mr-3 text-amber-500" />
-                      Security Infrastructure
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="p-10 space-y-8">
-                    <div className="flex items-center justify-between p-6 bg-slate-50 rounded-3xl border border-slate-100 group hover:bg-slate-100 transition-all cursor-pointer">
-                      <div className="flex items-center">
-                        <div className="p-3 bg-blue-50 rounded-2xl mr-4 border border-blue-100">
-                          <User className="h-6 w-6 text-blue-600" />
-                        </div>
-                        <div>
-                          <p className="text-sm font-black text-slate-900">Identity Protection</p>
-                          <p className="text-xs text-slate-400 font-bold">Two-Factor Authentication (2FA)</p>
-                        </div>
-                      </div>
-                      <Badge className="bg-emerald-500/20 text-emerald-400 border-none rounded-xl px-4 py-1.5 text-[10px] font-black uppercase tracking-widest">Active</Badge>
-                    </div>
-
-                    <div className="flex items-center justify-between p-6 bg-slate-50 rounded-3xl border border-slate-100 group hover:bg-slate-100 transition-all cursor-pointer">
-                      <div className="flex items-center">
-                        <div className="p-3 bg-purple-50 rounded-2xl mr-4 border border-purple-100">
-                          <Bell className="h-6 w-6 text-purple-600" />
-                        </div>
-                        <div>
-                          <p className="text-sm font-black text-slate-900">Signal Alerts</p>
-                          <p className="text-xs text-slate-400 font-bold">Management of notification frequency</p>
-                        </div>
-                      </div>
-                      <Button variant="ghost" className="text-slate-500 hover:text-white rounded-xl">Configure</Button>
-                    </div>
-
-                    <div className="flex items-center justify-between p-6 bg-slate-50 rounded-3xl border border-slate-100 group hover:bg-rose-50 transition-all cursor-pointer hover:border-rose-200">
-                      <div className="flex items-center">
-                        <div className="p-3 bg-rose-50 rounded-2xl mr-4 border border-rose-100">
-                          <LogOut className="h-6 w-6 text-rose-500" />
-                        </div>
-                        <div>
-                          <p className="text-sm font-black text-slate-900">Terminal Deactivation</p>
-                          <p className="text-xs text-slate-400 font-bold">Terminate current session</p>
-                        </div>
-                      </div>
-                      <Button variant="ghost" className="text-rose-500 hover:text-rose-400 hover:bg-rose-500/10 rounded-xl" onClick={handleLogout}>Execute</Button>
-                    </div>
-                  </CardContent>
-                </Card>
-              </div>
-            </div>
-          )}
         </main>
       </div>
     </div>

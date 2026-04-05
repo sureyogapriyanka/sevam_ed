@@ -13,10 +13,13 @@ import {
 } from "../../components/ui/select";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "../../lib/queryClient";
+import { apiCall } from "../../utils/api";
+import { format, formatDistanceToNow } from "date-fns";
 import { toast } from "../../hooks/use-toast";
 import { useNavigate, useLocation } from "react-router-dom";
 import { Skeleton } from "../../components/ui/skeleton";
 import { cn } from "../../lib/utils";
+import SevaMedConnect from "../../components/chat/SevaMedConnect";
 
 import {
   Users,
@@ -150,6 +153,38 @@ export default function AdminDashboard() {
   const [editRole, setEditRole] = useState("");
   const [editSpecialization, setEditSpecialization] = useState("");
   const [editDepartment, setEditDepartment] = useState("");
+  // Patient edit slide-out panel
+  const [editingPatient, setEditingPatient] = useState<any>(null);
+  const [patientEditName, setPatientEditName] = useState("");
+  const [patientEditEmail, setPatientEditEmail] = useState("");
+  const [patientEditPhone, setPatientEditPhone] = useState("");
+  const [patientEditAddress, setPatientEditAddress] = useState("");
+  const [patientEditSaving, setPatientEditSaving] = useState(false);
+
+  const handleOpenPatientEdit = (p: any) => {
+    setEditingPatient(p);
+    setPatientEditName(p.name || "");
+    setPatientEditEmail(p.email || "");
+    setPatientEditPhone(p.phone || "");
+    setPatientEditAddress(p.address || "");
+  };
+
+  const handleSavePatientEdit = async () => {
+    if (!editingPatient) return;
+    setPatientEditSaving(true);
+    try {
+      const token = localStorage.getItem("token") || "";
+      const API = import.meta.env.VITE_API_BASE_URL || "http://localhost:5000/api";
+      await fetch(`${API}/users/${editingPatient._id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ name: patientEditName, email: patientEditEmail, phone: patientEditPhone, address: patientEditAddress }),
+      });
+      setEditingPatient(null);
+      handleRefreshData();
+    } catch { /* silent */ }
+    finally { setPatientEditSaving(false); }
+  };
   const [selectedChartItem, setSelectedChartItem] = useState<any>(null);
   const [chartFilter, setChartFilter] = useState("all");
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -203,10 +238,8 @@ export default function AdminDashboard() {
     { id: "queue", label: "Queue Management", icon: Users },
     { id: "payments", label: "Payments Management", icon: CreditCard },
     { id: "analytics", label: "Data Analytics", icon: BarChart3 },
-    { id: "insights", label: "Health Insights", icon: Activity },
     { id: "chat", label: "Chat System", icon: MessageSquare },
     { id: "reports", label: "Reports", icon: FileText },
-    { id: "flow", label: "Flow Monitor", icon: Activity },
     { id: "settings", label: "System Settings", icon: Settings }
   ];
 
@@ -320,38 +353,11 @@ export default function AdminDashboard() {
     ]
   });
 
-  // Mock data for chat messages
-  const [chatMessages, setChatMessages] = useState([
-    { id: 1, sender: "Dr. Anjali Verma", message: "Good morning team!", time: "9:00 AM", avatar: "AV" },
-    { id: 2, sender: "Nurse Kavita", message: "Good morning Doctor. Ready for today's appointments.", time: "9:02 AM", avatar: "NK" },
-    { id: 3, sender: "Dr. Rajiv Malhotra", message: "I need to reschedule my 11 AM appointment.", time: "9:15 AM", avatar: "RM" },
-    { id: 4, sender: "Admin", message: "Noted Dr. Malhotra. I'll handle that for you.", time: "9:17 AM", avatar: "AD", isOwn: true }
-  ]);
-
-  // State for new chat message
-  const [newMessage, setNewMessage] = useState("");
-
-  // Handle sending a new chat message
-  const handleSendMessage = () => {
-    if (newMessage.trim() !== "") {
-      const message = {
-        id: chatMessages.length + 1,
-        sender: "Admin",
-        message: newMessage,
-        time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-        avatar: "AD",
-        isOwn: true
-      };
-      setChatMessages([...chatMessages, message]);
-      setNewMessage("");
-    }
-  };
-
+  // Handle logout
   // Handle logout
   const handleLogout = async () => {
     try {
       await logout();
-      navigate("/");
     } catch (error) {
       console.error("Logout error:", error);
     }
@@ -420,13 +426,7 @@ export default function AdminDashboard() {
     setEditingUser(null);
   };
 
-  // Handle send message on Enter key
-  const handleKeyPress = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault();
-      handleSendMessage();
-    }
-  };
+  // Handle scroll to top
 
   // Close sidebar when route changes (for mobile)
   useEffect(() => {
@@ -441,7 +441,6 @@ export default function AdminDashboard() {
     else if (path.includes("/admin/queue")) setActiveTab("queue");
     else if (path.includes("/admin/payments")) setActiveTab("payments");
     else if (path.includes("/admin/analytics")) setActiveTab("analytics");
-    else if (path.includes("/admin/insights")) setActiveTab("insights");
     else if (path.includes("/admin/chat")) setActiveTab("chat");
     else if (path.includes("/admin/reports")) setActiveTab("reports");
     else if (path.includes("/admin/flow")) setActiveTab("flow");
@@ -490,7 +489,9 @@ export default function AdminDashboard() {
 
   // Enhanced Chart component for analytics with trend lines
   const EnhancedBarChart = ({ data, dataKey, color = "bg-blue-600", title, onBarClick }: { data: any[]; dataKey: string; color?: string; title?: string; onBarClick?: (item: any) => void; }) => {
-    const maxValue = Math.max(...data.map(d => d[dataKey]));
+    // FIX: Add check for empty data and valid numbers to prevent NaN/Infinity
+    const values = data.map(d => Number(d[dataKey]) || 0);
+    const maxValue = values.length > 0 ? Math.max(...values, 1) : 1;
 
     // Calculate trend (simple moving average for demonstration)
     const calculateTrend = () => {
@@ -524,42 +525,43 @@ export default function AdminDashboard() {
             </div>
           </div>
         )}
-        <div className="flex items-end space-x-1 sm:space-x-2 h-48 sm:h-64 relative overflow-x-auto pb-4">
+        <div className="flex items-end space-x-1 sm:space-x-2 h-64 sm:h-80 relative overflow-x-auto pb-8 pt-6">
           {/* Background grid lines for better visibility of gaps */}
-          <div className="absolute inset-0 flex flex-col justify-between">
+          <div className="absolute inset-x-0 top-6 bottom-8 flex flex-col justify-between">
             {[...Array(5)].map((_, i) => (
-              <div key={i} className="w-full border-t border-gray-200"></div>
+              <div key={i} className="w-full border-t border-gray-100"></div>
             ))}
           </div>
-
+ 
           {/* Average line */}
           <div
-            className="absolute left-0 right-0 h-0.5 bg-gray-400 opacity-70"
-            style={{ bottom: `${maxValue > 0 ? (averageValue / maxValue) * 80 : 0}%` }}
+            className="absolute left-0 right-0 h-0.5 bg-blue-200 border-t border-dashed border-blue-400 z-10"
+            style={{ bottom: `calc(${(averageValue / maxValue) * 100}% * 0.85 + 32px)` }}
           >
-            <div className="absolute -top-6 left-0 text-xs text-gray-600">
+            <div className="absolute -top-6 right-0 bg-white/80 px-2 py-0.5 rounded-full text-[10px] font-black text-blue-600 shadow-sm border border-blue-100">
               Avg: {Math.round(averageValue)}
             </div>
           </div>
-
-          {/* Chart bars */}
-          <div className="flex min-w-full sm:min-w-0">
+ 
+          {/* Chart bars wrapper - FIX: Added h-full and proper flex alignment */}
+          <div className="flex items-end justify-around w-full h-full relative z-20 px-2">
             {data.map((item, index) => (
-              <div key={index} className="flex flex-col items-center flex-1 group min-w-[40px] sm:min-w-0">
-                <div className="text-[10px] sm:text-xs text-gray-500 mb-1 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
-                  {item[dataKey]}
-                </div>
-                <div
-                  className={`${color} rounded-t hover:opacity-75 transition-all duration-300 w-full shadow-md hover:shadow-lg cursor-pointer`}
-                  style={{ height: `${maxValue > 0 ? (item[dataKey] / maxValue) * 80 : 0}%` }}
-                  title={`${item.month || item.doctor}: ${item[dataKey]}`}
-                  onClick={() => onBarClick && onBarClick(item)}
-                >
-                  <div className="h-full w-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity text-white text-[8px] sm:text-xs font-bold">
+              <div key={index} className="flex flex-col items-center group flex-1 max-w-[60px]">
+                <div className="h-full w-full flex flex-col justify-end items-center">
+                  <div className="text-[10px] font-black text-blue-600 mb-1 opacity-0 group-hover:opacity-100 transition-all transform translate-y-2 group-hover:translate-y-0 whitespace-nowrap">
                     {item[dataKey]}
                   </div>
+                  <div
+                    className={cn(color, "rounded-t-lg hover:brightness-110 transition-all duration-500 w-full shadow-[0_-4px_12px_rgba(0,0,0,0.05)] cursor-pointer relative")}
+                    style={{ height: `${(item[dataKey] / maxValue) * 85}%`, minHeight: '4px' }}
+                    title={`${item.month || item.doctor}: ${item[dataKey]}`}
+                    onClick={() => onBarClick && onBarClick(item)}
+                  >
+                    {/* Glossy effect */}
+                    <div className="absolute inset-x-0 top-0 h-1/2 bg-white/10 rounded-t-lg pointer-events-none"></div>
+                  </div>
                 </div>
-                <div className="text-[10px] sm:text-xs text-gray-500 mt-1 whitespace-nowrap">
+                <div className="text-[10px] font-bold text-slate-400 mt-3 whitespace-nowrap uppercase tracking-tighter">
                   {item.month || item.doctor}
                 </div>
               </div>
@@ -567,8 +569,8 @@ export default function AdminDashboard() {
           </div>
         </div>
         <div className="mt-4 text-xs text-gray-500 flex justify-between">
-          <span>Min: {Math.min(...data.map(d => d[dataKey]))}</span>
-          <span>Max: {Math.max(...data.map(d => d[dataKey]))}</span>
+          <span>Min: {Math.min(...values)}</span>
+          <span>Max: {Math.max(...values)}</span>
         </div>
       </div>
     );
@@ -1057,43 +1059,111 @@ export default function AdminDashboard() {
                 </Button>
               </div>
 
-              {/* User List Dynamically Loaded */}
-              {usersLoading ? (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {[...Array(6)].map((_, i) => (
-                    <Skeleton key={i} className="h-32 rounded-xl" />
-                  ))}
+              {/* User List Dynamically Loaded - REDESIGNED TABLE */}
+              <div className="bg-white border-2 border-slate-200/60 shadow-xl rounded-[2.5rem] overflow-hidden">
+                <div className="p-8 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
+                    <h2 className="text-xl font-black text-slate-900 flex items-center gap-3 uppercase tracking-tight">
+                        <Users className="text-blue-600" size={24} />
+                        Patient Database
+                        <Badge className="bg-blue-100 text-blue-600 font-black rounded-lg">{patientUsers.length} Recorded</Badge>
+                    </h2>
                 </div>
-              ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {patientUsers.map((pUser: any, i: number) => {
-                    const colors = ['bg-blue-500', 'bg-green-500', 'bg-amber-500', 'bg-purple-500', 'bg-cyan-500'];
-                    const bgColor = colors[i % colors.length];
-                    return (
-                      <Card key={pUser._id} className={`border-l-4 border-l-${bgColor.split('-')[1]}-500 hover:shadow-xl transition-all duration-300 hover:-translate-y-1 bg-white`}>
-                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                          <CardTitle className="text-sm font-medium">{pUser.name}</CardTitle>
-                          <Users className="h-4 w-4 text-muted-foreground" />
-                        </CardHeader>
-                        <CardContent>
-                          <div className="text-sm text-gray-500">{pUser.email || 'No Email'}</div>
-                          <div className="text-sm text-gray-500 capitalize">{pUser.role} - ID: {pUser.username}</div>
-                          <div className="flex items-center space-x-2 mt-2">
-                            <Button variant="outline" size="sm" className="border-blue-300 text-blue-700 hover:bg-blue-50">
-                              <Edit3 className="h-4 w-4 mr-1" />
-                              Edit
-                            </Button>
-                            <Button variant="outline" size="sm" className="border-red-300 text-red-700 hover:bg-red-50">
-                              <Trash2 className="h-4 w-4 mr-1" />
-                              Delete
-                            </Button>
-                          </div>
-                        </CardContent>
-                      </Card>
-                    );
-                  })}
+
+                <div className="overflow-x-auto">
+                    <table className="w-full border-collapse">
+                        <thead>
+                            <tr className="bg-slate-50 border-b border-slate-200">
+                                <th className="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest text-left w-16">#</th>
+                                <th className="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest text-left">Patient Details</th>
+                                <th className="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest text-left">Role / Access ID</th>
+                                <th className="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest text-left">Date Joined</th>
+                                <th className="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest text-center">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody className="divide-y divide-slate-100">
+                            {usersLoading ? (
+                                Array(6).fill(0).map((_, i) => (
+                                    <tr key={i}><td colSpan={5} className="px-6 py-4"><Skeleton className="h-12 w-full rounded-xl" /></td></tr>
+                                ))
+                            ) : patientUsers.length === 0 ? (
+                                <tr>
+                                    <td colSpan={5} className="px-6 py-24 text-center">
+                                        <Users className="h-12 w-12 text-slate-200 mx-auto mb-4" />
+                                        <h3 className="text-sm font-black text-slate-400 uppercase tracking-widest">No matching records</h3>
+                                    </td>
+                                </tr>
+                            ) : (
+                                patientUsers.map((pUser: any, i: number) => {
+                                    const colors = ['bg-blue-500', 'bg-emerald-500', 'bg-amber-500', 'bg-purple-500', 'bg-cyan-500'];
+                                    const bgColor = colors[i % colors.length];
+                                    
+                                    return (
+                                        <tr key={pUser._id} className="hover:bg-blue-50/20 transition-colors group">
+                                            <td className="px-6 py-4">
+                                                <span className="text-xs font-black text-slate-300">{(i + 1).toString().padStart(2, '0')}</span>
+                                            </td>
+                                            <td className="px-6 py-4">
+                                                <div className="flex items-center gap-4">
+                                                    <div className={cn(
+                                                        "h-10 w-10 rounded-2xl flex items-center justify-center text-white font-black text-xs shadow-lg transition-transform group-hover:scale-110",
+                                                        bgColor
+                                                    )}>
+                                                        {pUser.name.charAt(0).toUpperCase()}
+                                                    </div>
+                                                    <div className="space-y-0.5">
+                                                        <p className="font-black text-slate-900 uppercase tracking-tight">{pUser.name}</p>
+                                                        <div className="flex items-center gap-1.5">
+                                                            <Mail size={10} className="text-slate-400" />
+                                                            <p className="text-[10px] font-bold text-slate-400 lowercase">{pUser.email || 'no-email@sevamed.com'}</p>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td className="px-6 py-4">
+                                                <div className="space-y-1">
+                                                    <Badge className="bg-slate-100 text-slate-500 border-none font-black text-[8px] uppercase px-2 py-0.5 rounded-md">
+                                                        {pUser.role}
+                                                    </Badge>
+                                                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest pl-1">ID: {pUser.username}</p>
+                                                </div>
+                                            </td>
+                                            <td className="px-6 py-4">
+                                                <div className="flex items-center gap-2">
+                                                    <Calendar size={14} className="text-blue-500" />
+                                                    <span className="text-xs font-bold text-slate-600">
+                                                        {pUser.createdAt ? format(new Date(pUser.createdAt), 'MMM dd, yyyy') : 'N/A'}
+                                                    </span>
+                                                </div>
+                                            </td>
+                                            <td className="px-6 py-4 text-center">
+                                                <div className="flex items-center justify-center gap-2">
+                                                    <Button 
+                                                        variant="outline" 
+                                                        size="sm" 
+                                                        className="h-9 rounded-xl border-slate-200 text-blue-600 hover:bg-blue-600 hover:text-white hover:border-blue-600 transition-all font-black uppercase text-[10px] tracking-widest gap-2"
+                                                        onClick={() => handleOpenPatientEdit(pUser)}
+                                                    >
+                                                        <Edit3 size={14} />
+                                                        Edit
+                                                    </Button>
+                                                    <Button 
+                                                        variant="outline" 
+                                                        size="sm" 
+                                                        className="h-9 rounded-xl border-slate-200 text-rose-600 hover:bg-rose-600 hover:text-white hover:border-rose-600 transition-all font-black uppercase text-[10px] tracking-widest gap-2"
+                                                    >
+                                                        <Trash2 size={14} />
+                                                        Delete
+                                                    </Button>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    );
+                                })
+                            )}
+                        </tbody>
+                    </table>
                 </div>
-              )}
+              </div>
             </div>
           )}
 
@@ -1177,11 +1247,7 @@ export default function AdminDashboard() {
                         </thead>
                         <tbody className="divide-y divide-gray-50">
                           {recentBills.map((bill: any) => (
-                            <tr
-                              key={bill._id}
-                              className="hover:bg-gray-50 cursor-pointer transition"
-                              onClick={() => navigate(`/billing/${bill._id}`)}
-                            >
+                            <tr key={bill._id} className="hover:bg-gray-50 transition">
                               <td className="px-4 py-3 font-mono text-blue-600 text-xs font-semibold">{bill.billNumber}</td>
                               <td className="px-4 py-3 font-medium text-gray-800">{bill.patientName}</td>
                               <td className="px-4 py-3 font-semibold text-gray-800">₹{bill.grandTotal?.toLocaleString("en-IN")}</td>
@@ -2283,465 +2349,12 @@ export default function AdminDashboard() {
             </div>
           )}
 
-          {/* Health Insights Dashboard */}
-          {activeTab === "insights" && (
-            <div className="space-y-6">
-              <div className="flex justify-between items-center">
-                <h1 className="text-2xl font-bold text-gray-900">Health Insights</h1>
-                <Button variant="outline" className="flex items-center" onClick={handleRefreshData}>
-                  <RefreshCw className="h-4 w-4 mr-2" />
-                  Refresh Data
-                </Button>
-              </div>
 
-              {/* Insights Cards */}
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                <Card className="border-l-4 border-l-blue-500 hover:shadow-xl transition-all duration-300 hover:-translate-y-1 bg-white">
-                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium">Active Sessions</CardTitle>
-                    <Users className="h-4 w-4 text-muted-foreground" />
-                  </CardHeader>
-                  <CardContent>
-                    <div className="text-2xl font-bold">{analyticsData.activeSessions}</div>
-                    <p className="text-xs text-green-600 flex items-center">
-                      <TrendingUp className="h-3 w-3 mr-1" />
-                      +5% from last week
-                    </p>
-                  </CardContent>
-                </Card>
-
-                <Card className="border-l-4 border-l-green-500 hover:shadow-xl transition-all duration-300 hover:-translate-y-1 bg-white">
-                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium">Pending Payments</CardTitle>
-                    <CreditCard className="h-4 w-4 text-muted-foreground" />
-                  </CardHeader>
-                  <CardContent>
-                    <div className="text-2xl font-bold">{analyticsData.pendingPayments}</div>
-                    <p className="text-xs text-green-600 flex items-center">
-                      <TrendingUp className="h-3 w-3 mr-1" />
-                      +2 payments this month
-                    </p>
-                  </CardContent>
-                </Card>
-
-                <Card className="border-l-4 border-l-amber-500 hover:shadow-xl transition-all duration-300 hover:-translate-y-1 bg-white">
-                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium">Completed Appointments</CardTitle>
-                    <Calendar className="h-4 w-4 text-muted-foreground" />
-                  </CardHeader>
-                  <CardContent>
-                    <div className="text-2xl font-bold">{analyticsData.completedAppointments}</div>
-                    <p className="text-xs text-green-600 flex items-center">
-                      <TrendingUp className="h-3 w-3 mr-1" />
-                      +10% from last week
-                    </p>
-                  </CardContent>
-                </Card>
-
-                <Card className="border-l-4 border-l-purple-500 hover:shadow-xl transition-all duration-300 hover:-translate-y-1 bg-white">
-                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium">Canceled Appointments</CardTitle>
-                    <AlertCircle className="h-4 w-4 text-muted-foreground" />
-                  </CardHeader>
-                  <CardContent>
-                    <div className="text-2xl font-bold">{analyticsData.canceledAppointments}</div>
-                    <p className="text-xs text-red-600 flex items-center">
-                      <TrendingDown className="h-3 w-3 mr-1" />
-                      -2% from last week
-                    </p>
-                  </CardContent>
-                </Card>
-
-                <Card className="border-l-4 border-l-red-500 hover:shadow-xl transition-all duration-300 hover:-translate-y-1 bg-white">
-                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium">Critical Patients</CardTitle>
-                    <Activity className="h-4 w-4 text-muted-foreground" />
-                  </CardHeader>
-                  <CardContent>
-                    <div className="text-2xl font-bold">{analyticsData.criticalPatients}</div>
-                    <p className="text-xs text-red-600 flex items-center">
-                      <TrendingUp className="h-3 w-3 mr-1" />
-                      +3 from last week
-                    </p>
-                  </CardContent>
-                </Card>
-
-                <Card className="border-l-4 border-l-cyan-500 hover:shadow-xl transition-all duration-300 hover:-translate-y-1 bg-white">
-                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium">Routine Checkups</CardTitle>
-                    <Stethoscope className="h-4 w-4 text-muted-foreground" />
-                  </CardHeader>
-                  <CardContent>
-                    <div className="text-2xl font-bold">{analyticsData.routineCheckups}</div>
-                    <p className="text-xs text-green-600 flex items-center">
-                      <TrendingUp className="h-3 w-3 mr-1" />
-                      +12% from last month
-                    </p>
-                  </CardContent>
-                </Card>
-
-                <Card className="border-l-4 border-l-yellow-500 hover:shadow-xl transition-all duration-300 hover:-translate-y-1 bg-white">
-                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium">Emergency Cases</CardTitle>
-                    <AlertCircle className="h-4 w-4 text-muted-foreground" />
-                  </CardHeader>
-                  <CardContent>
-                    <div className="text-2xl font-bold">{analyticsData.emergencyCases}</div>
-                    <p className="text-xs text-red-600 flex items-center">
-                      <TrendingDown className="h-3 w-3 mr-1" />
-                      -1 from yesterday
-                    </p>
-                  </CardContent>
-                </Card>
-
-                <Card className="border-l-4 border-l-indigo-500 hover:shadow-xl transition-all duration-300 hover:-translate-y-1 bg-white">
-                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium">Avg. Recovery Time</CardTitle>
-                    <Clock className="h-4 w-4 text-muted-foreground" />
-                  </CardHeader>
-                  <CardContent>
-                    <div className="text-2xl font-bold">{analyticsData.avgRecoveryTime} days</div>
-                    <p className="text-xs text-green-600 flex items-center">
-                      <TrendingDown className="h-3 w-3 mr-1" />
-                      -0.5 days from avg
-                    </p>
-                  </CardContent>
-                </Card>
-              </div>
-
-              {/* Health Insights Charts */}
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                {/* Patient Health Metrics */}
-                <Card className="shadow-lg hover:shadow-xl transition-shadow duration-300 border-t-4 border-t-blue-500">
-                  <CardHeader>
-                    <CardTitle className="flex justify-between items-center">
-                      <span>Patient Health Metrics</span>
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <EnhancedBarChart
-                      data={[{ metric: "Blood Pressure", value: 120 }, { metric: "Heart Rate", value: 72 }, { metric: "Cholesterol", value: 180 }, { metric: "Glucose", value: 90 }, { metric: "BMI", value: 24 }]}
-                      dataKey="value"
-                      color="bg-blue-600"
-                      title=""
-                      onBarClick={(item) => alert(`Clicked on ${item.metric}: ${item.value}`)}
-                    />
-                  </CardContent>
-                </Card>
-
-                {/* Treatment Outcomes */}
-                <Card className="shadow-lg hover:shadow-xl transition-shadow duration-300 border-t-4 border-t-green-500">
-                  <CardHeader>
-                    <CardTitle className="flex justify-between items-center">
-                      <span>Treatment Outcomes</span>
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <PieChartComponent
-                      data={[{ name: "Recovered", value: 75, color: "bg-green-500" }, { name: "In Treatment", value: 20, color: "bg-blue-500" }, { name: "Follow-up Required", value: 5, color: "bg-yellow-500" }]}
-                      title=""
-                    />
-                  </CardContent>
-                </Card>
-              </div>
-
-              {/* Additional Health Insights Charts */}
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                {/* Monthly Health Trends */}
-                <Card className="shadow-lg hover:shadow-xl transition-shadow duration-300 border-l-4 border-l-amber-500 transform hover:scale-105 transition-transform duration-300">
-                  <CardHeader>
-                    <CardTitle className="flex justify-between items-center">
-                      <span>Monthly Health Trends</span>
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <EnhancedBarChart
-                      data={chartData.appointments}
-                      dataKey="count"
-                      color="bg-amber-600"
-                      title="Patient Visits Trend"
-                    />
-                  </CardContent>
-                </Card>
-
-                {/* Department Performance */}
-                <Card className="shadow-lg hover:shadow-xl transition-shadow duration-300 border-l-4 border-l-purple-500 transform hover:scale-105 transition-transform duration-300">
-                  <CardHeader>
-                    <CardTitle className="flex justify-between items-center">
-                      <span>Department Performance</span>
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <EnhancedBarChart
-                      data={[{ dept: "Cardiology", patients: 120 }, { dept: "Neurology", patients: 95 }, { dept: "Pediatrics", patients: 140 }, { dept: "Orthopedics", patients: 85 }, { dept: "Emergency", patients: 160 }]}
-                      dataKey="patients"
-                      color="bg-purple-600"
-                      title="Patients by Department"
-                    />
-                  </CardContent>
-                </Card>
-
-                {/* Patient Satisfaction */}
-                <Card className="shadow-lg hover:shadow-xl transition-shadow duration-300 border-l-4 border-l-cyan-500 transform hover:scale-105 transition-transform duration-300">
-                  <CardHeader>
-                    <CardTitle className="flex justify-between items-center">
-                      <span>Patient Satisfaction</span>
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="flex flex-col items-center justify-center h-full">
-                      <div className="text-4xl font-bold text-cyan-600 mb-2">{analyticsData.avgRating}</div>
-                      <div className="text-sm text-gray-500 mb-4">Average Rating</div>
-                      <div className="flex items-center">
-                        {[...Array(5)].map((_, i) => (
-                          <Star
-                            key={i}
-                            className={`h-5 w-5 ${i < Math.floor(analyticsData.avgRating) ? 'text-yellow-400 fill-current' : 'text-gray-300'}`}
-                          />
-                        ))}
-                      </div>
-                      <div className="mt-4 w-full">
-                        <div className="flex justify-between text-sm mb-1">
-                          <span className="font-medium text-gray-700">Satisfaction Rate</span>
-                          <span className="font-bold text-gray-900">94%</span>
-                        </div>
-                        <ProgressBar value={94} max={100} color="bg-cyan-500" />
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-
-                {/* Critical Patient Monitoring */}
-                <Card className="shadow-lg hover:shadow-xl transition-shadow duration-300 border-l-4 border-l-red-500 transform hover:scale-105 transition-transform duration-300">
-                  <CardHeader>
-                    <CardTitle className="flex justify-between items-center">
-                      <span>Critical Patient Monitoring</span>
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <EnhancedBarChart
-                      data={[{ condition: "Heart Disease", count: 8 }, { condition: "Diabetes", count: 5 }, { condition: "Respiratory", count: 3 }, { condition: "Neurological", count: 2 }]}
-                      dataKey="count"
-                      color="bg-red-600"
-                      title="Critical Conditions"
-                    />
-                  </CardContent>
-                </Card>
-
-                {/* Treatment Effectiveness */}
-                <Card className="shadow-lg hover:shadow-xl transition-shadow duration-300 border-l-4 border-l-green-500 transform hover:scale-105 transition-transform duration-300">
-                  <CardHeader>
-                    <CardTitle className="flex justify-between items-center">
-                      <span>Treatment Effectiveness</span>
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <PieChartComponent
-                      data={[{ name: "Highly Effective", value: 65, color: "bg-green-500" }, { name: "Moderately Effective", value: 25, color: "bg-blue-500" }, { name: "Needs Improvement", value: 10, color: "bg-yellow-500" }]}
-                      title="Treatment Outcomes"
-                    />
-                  </CardContent>
-                </Card>
-
-                {/* Recovery Time Analysis */}
-                <Card className="shadow-lg hover:shadow-xl transition-shadow duration-300 border-l-4 border-l-indigo-500 transform hover:scale-105 transition-transform duration-300">
-                  <CardHeader>
-                    <CardTitle className="flex justify-between items-center">
-                      <span>Recovery Time Analysis</span>
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <EnhancedBarChart
-                      data={[{ treatment: "Surgery A", days: 7.2 }, { treatment: "Surgery B", days: 5.8 }, { treatment: "Therapy C", days: 12.4 }, { treatment: "Procedure D", days: 3.5 }]}
-                      dataKey="days"
-                      color="bg-indigo-600"
-                      title="Avg. Recovery Days by Treatment"
-                    />
-                  </CardContent>
-                </Card>
-              </div>
-            </div>
-          )}
-
-          {/* Chat System Dashboard */}
+          {/* Professional Chat System Dashboard */}
           {activeTab === "chat" && (
-            <div className="space-y-6">
-              <div className="flex justify-between items-center">
-                <h1 className="text-2xl font-bold text-gray-900">Chat System</h1>
-                <Button variant="outline" className="flex items-center">
-                  <RefreshCw className="h-4 w-4 mr-2" />
-                  Refresh Data
-                </Button>
-              </div>
-
-              {/* Chat Container */}
-              <div className="flex flex-col h-[calc(100vh-200px)] bg-white rounded-lg shadow-lg overflow-hidden">
-                {/* Chat Header */}
-                <div className="bg-blue-600 text-white p-4">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-3">
-                      <div className="w-10 h-10 bg-white rounded-full flex items-center justify-center text-blue-600 font-bold">
-                        T
-                      </div>
-                      <div>
-                        <h3 className="font-semibold">Team Chat</h3>
-                        <p className="text-blue-200 text-sm">5 members online</p>
-                      </div>
-                    </div>
-                    <div className="flex space-x-2">
-                      <Button variant="ghost" size="icon" className="text-white hover:bg-blue-700">
-                        <Phone className="h-5 w-5" />
-                      </Button>
-                      <Button variant="ghost" size="icon" className="text-white hover:bg-blue-700">
-                        <Video className="h-5 w-5" />
-                      </Button>
-                      <Button variant="ghost" size="icon" className="text-white hover:bg-blue-700">
-                        <MoreVertical className="h-5 w-5" />
-                      </Button>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Chat Messages */}
-                <div className="flex-1 overflow-y-auto p-4 bg-gray-50">
-                  <div className="space-y-4">
-                    {chatMessages.map((msg) => (
-                      <div
-                        key={msg.id}
-                        className={`flex ${msg.isOwn ? 'justify-end' : 'justify-start'}`}
-                      >
-                        <div
-                          className={`max-w-xs md:max-w-md lg:max-w-lg rounded-lg p-3 ${msg.isOwn ? 'bg-blue-600 text-white rounded-br-none' : 'bg-white text-gray-800 rounded-bl-none shadow'}`}
-                        >
-                          {!msg.isOwn && (
-                            <div className="flex items-center space-x-2 mb-1">
-                              <div className="w-6 h-6 bg-blue-600 rounded-full flex items-center justify-center text-white text-xs font-bold">
-                                {msg.avatar}
-                              </div>
-                              <span className="font-semibold text-sm">{msg.sender}</span>
-                            </div>
-                          )}
-                          <p className="text-sm">{msg.message}</p>
-                          <p className={`text-xs mt-1 ${msg.isOwn ? 'text-blue-200' : 'text-gray-500'}`}>
-                            {msg.time}
-                          </p>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Chat Input */}
-                <div className="border-t border-gray-200 p-4 bg-white">
-                  <div className="flex items-center space-x-2">
-                    <Button variant="ghost" size="icon" className="text-gray-500 hover:text-gray-700">
-                      <Paperclip className="h-5 w-5" />
-                    </Button>
-                    <div className="flex-1 relative">
-                      <textarea
-                        value={newMessage}
-                        onChange={(e) => setNewMessage(e.target.value)}
-                        onKeyPress={handleKeyPress}
-                        placeholder="Type a message..."
-                        className="w-full border border-gray-300 rounded-full py-2 px-4 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
-                        rows={1}
-                      />
-                    </div>
-                    <Button
-                      onClick={handleSendMessage}
-                      className="bg-blue-600 hover:bg-blue-700 text-white rounded-full p-2"
-                      disabled={!newMessage.trim()}
-                    >
-                      <Send className="h-5 w-5" />
-                    </Button>
-                  </div>
-                </div>
-              </div>
-
-              {/* Online Users */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <Card className="md:col-span-1">
-                  <CardHeader>
-                    <CardTitle className="flex items-center">
-                      <Users className="h-5 w-5 mr-2" />
-                      Online Users
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-3">
-                      {[
-                        { name: "Dr. Anjali Verma", role: "Cardiologist", status: "online" },
-                        { name: "Dr. Rajiv Malhotra", role: "Neurologist", status: "online" },
-                        { name: "Dr. Nalini Iyer", role: "Pediatrician", status: "online" },
-                        { name: "Dr. Arjun Nair", role: "Orthopedic", status: "away" },
-                        { name: "Nurse Kavita Desai", role: "Nurse", status: "online" }
-                      ].map((user, index) => (
-                        <div key={index} className="flex items-center justify-between p-2 rounded-lg hover:bg-gray-50">
-                          <div className="flex items-center space-x-3">
-                            <div className="relative">
-                              <div className="w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center text-white font-bold">
-                                {user.name.split(' ').map(n => n[0]).join('')}
-                              </div>
-                              <div className={`absolute bottom-0 right-0 w-3 h-3 rounded-full border-2 border-white ${user.status === 'online' ? 'bg-green-500' : 'bg-yellow-500'}`}></div>
-                            </div>
-                            <div>
-                              <p className="font-medium text-sm">{user.name}</p>
-                              <p className="text-xs text-gray-500">{user.role}</p>
-                            </div>
-                          </div>
-                          <Badge
-                            variant="outline"
-                            className={`text-xs ${user.status === 'online' ? 'bg-green-100 text-green-800 border-green-300' : 'bg-yellow-100 text-yellow-800 border-yellow-300'}`}
-                          >
-                            {user.status}
-                          </Badge>
-                        </div>
-                      ))}
-                    </div>
-                  </CardContent>
-                </Card>
-
-                {/* Recent Conversations */}
-                <Card className="md:col-span-2">
-                  <CardHeader>
-                    <CardTitle className="flex items-center">
-                      <MessageSquare className="h-5 w-5 mr-2" />
-                      Recent Conversations
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-3">
-                      {[
-                        { name: "Dr. Anjali Verma", message: "Good morning team!", time: "9:00 AM", unread: 0 },
-                        { name: "Nurse Kavita", message: "Ready for today's appointments.", time: "9:02 AM", unread: 0 },
-                        { name: "Dr. Rajiv Malhotra", message: "I need to reschedule my 11 AM appointment.", time: "9:15 AM", unread: 1 },
-                        { name: "Lab Technician Ramesh", message: "Blood test results are ready.", time: "8:45 AM", unread: 3 }
-                      ].map((conv, index) => (
-                        <div key={index} className="flex items-center justify-between p-3 rounded-lg hover:bg-gray-50 cursor-pointer border-b border-gray-100 last:border-b-0">
-                          <div className="flex items-center space-x-3">
-                            <div className="w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center text-white font-bold">
-                              {conv.name.split(' ').map(n => n[0]).join('')}
-                            </div>
-                            <div>
-                              <p className="font-medium text-sm">{conv.name}</p>
-                              <p className="text-xs text-gray-500 truncate max-w-xs">{conv.message}</p>
-                            </div>
-                          </div>
-                          <div className="flex flex-col items-end">
-                            <span className="text-xs text-gray-500">{conv.time}</span>
-                            {conv.unread > 0 && (
-                              <Badge className="bg-blue-600 text-white text-xs mt-1">
-                                {conv.unread}
-                              </Badge>
-                            )}
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </CardContent>
-                </Card>
-              </div>
-            </div>
+            <SevaMedConnect 
+                currentUser={{ name: "Admin", avatar: "AD" }} 
+            />
           )}
 
           {/* Reports Dashboard */}
@@ -3022,22 +2635,22 @@ export default function AdminDashboard() {
                   <h1 className="text-3xl font-bold text-blue-900">System Settings</h1>
                   <p className="text-blue-700 mt-1">Configure and manage your hospital system preferences</p>
                 </div>
-                <Button className="flex items-center bg-blue-600 hover:bg-blue-700 text-white shadow-lg hover:shadow-xl transition-all duration-300">
-                  <Save className="h-4 w-4 mr-2" />
-                  Save Settings
+                <Button className="h-12 px-8 bg-blue-600 hover:bg-blue-700 text-white rounded-2xl font-bold shadow-lg shadow-blue-200 transition-all duration-300 hover:scale-105 flex items-center">
+                  <Save className="h-5 w-5 mr-3" />
+                  Save System Preferences
                 </Button>
               </div>
 
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 {/* General Settings */}
-                <Card className="lg:col-span-2 shadow-lg hover:shadow-xl transition-shadow duration-300 border-2 border-blue-100">
-                  <CardHeader className="bg-blue-50 border-b-2 border-blue-200 rounded-t-lg">
-                    <CardTitle className="flex items-center text-blue-900">
-                      <Settings className="h-5 w-5 mr-2 text-blue-600" />
-                      General Settings
+                <Card className="lg:col-span-2 rounded-[2.5rem] shadow-2xl shadow-blue-900/5 border-none overflow-hidden transition-all duration-500 hover:shadow-blue-900/10 hover:-translate-y-1">
+                  <CardHeader className="bg-gradient-to-r from-blue-600 to-blue-500 p-8">
+                    <CardTitle className="flex items-center text-white text-2xl font-black uppercase tracking-tight">
+                      <Settings className="h-6 w-6 mr-3 text-blue-100 animate-pulse" />
+                      General System Settings
                     </CardTitle>
                   </CardHeader>
-                  <CardContent className="pt-6">
+                  <CardContent className="p-8">
                     <div className="space-y-8">
                       <div>
                         <h3 className="text-xl font-semibold text-blue-900 mb-4 flex items-center">
@@ -3080,59 +2693,60 @@ export default function AdminDashboard() {
                         </div>
                       </div>
 
-                      <div>
-                        <h3 className="text-xl font-semibold text-blue-900 mb-4 flex items-center">
-                          <Settings className="h-5 w-5 mr-2 text-blue-600" />
+                      <div className="pt-4 mt-8 border-t border-slate-100">
+                        <h3 className="text-sm font-black text-slate-400 mb-6 flex items-center uppercase tracking-[0.2em]">
+                          <Settings className="h-4 w-4 mr-2" />
                           System Configuration
                         </h3>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                          <div className="space-y-2">
-                            <label className="block text-sm font-medium text-blue-800">Default Language</label>
+                        {/* FIX: Increased gap to gap-10 to prevent overlapping and provide better breathing room */}
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-10">
+                          <div className="space-y-3 relative">
+                            <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest pl-1">Default Language</label>
                             <Select defaultValue="english">
-                              <SelectTrigger className="border-2 border-blue-200 focus:ring-blue-500 focus:border-blue-500">
+                              <SelectTrigger className="h-12 border-slate-200 rounded-2xl bg-slate-50/50 focus:ring-blue-500 focus:border-blue-500 font-bold text-slate-700">
                                 <SelectValue placeholder="Select language" />
                               </SelectTrigger>
-                              <SelectContent>
-                                <SelectItem value="english">English</SelectItem>
-                                <SelectItem value="hindi">Hindi</SelectItem>
+                              <SelectContent className="rounded-2xl border-slate-100 shadow-2xl z-[100]">
+                                <SelectItem value="english">English (Global)</SelectItem>
+                                <SelectItem value="hindi">Hindi (India)</SelectItem>
                                 <SelectItem value="telugu">Telugu</SelectItem>
                                 <SelectItem value="tamil">Tamil</SelectItem>
                               </SelectContent>
                             </Select>
                           </div>
-                          <div className="space-y-2">
-                            <label className="block text-sm font-medium text-blue-800">Timezone</label>
+                          <div className="space-y-3 relative">
+                            <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest pl-1">Global Timezone</label>
                             <Select defaultValue="ist">
-                              <SelectTrigger className="border-2 border-blue-200 focus:ring-blue-500 focus:border-blue-500">
+                              <SelectTrigger className="h-12 border-slate-200 rounded-2xl bg-slate-50/50 focus:ring-blue-500 focus:border-blue-500 font-bold text-slate-700">
                                 <SelectValue placeholder="Select timezone" />
                               </SelectTrigger>
-                              <SelectContent>
+                              <SelectContent className="rounded-2xl border-slate-100 shadow-2xl z-[100]">
                                 <SelectItem value="ist">India Standard Time (IST)</SelectItem>
-                                <SelectItem value="utc">UTC</SelectItem>
-                                <SelectItem value="est">Eastern Standard Time (EST)</SelectItem>
+                                <SelectItem value="utc">Universal (UTC)</SelectItem>
+                                <SelectItem value="est">Eastern Standard (EST)</SelectItem>
                               </SelectContent>
                             </Select>
                           </div>
-                          <div className="space-y-2">
-                            <label className="block text-sm font-medium text-blue-800">Currency</label>
+                          <div className="space-y-3 relative">
+                            <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest pl-1">System Currency</label>
                             <Select defaultValue="inr">
-                              <SelectTrigger className="border-2 border-blue-200 focus:ring-blue-500 focus:border-blue-500">
+                              <SelectTrigger className="h-12 border-slate-200 rounded-2xl bg-slate-50/50 focus:ring-blue-500 focus:border-blue-500 font-bold text-slate-700">
                                 <SelectValue placeholder="Select currency" />
                               </SelectTrigger>
-                              <SelectContent>
+                              <SelectContent className="rounded-2xl border-slate-100 shadow-2xl z-[100]">
                                 <SelectItem value="inr">Indian Rupee (₹)</SelectItem>
                                 <SelectItem value="usd">US Dollar ($)</SelectItem>
                                 <SelectItem value="eur">Euro (€)</SelectItem>
                               </SelectContent>
                             </Select>
                           </div>
-                          <div className="space-y-2">
-                            <label className="block text-sm font-medium text-blue-800">Date Format</label>
+                          <div className="space-y-3 relative">
+                            <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest pl-1">System Date Format</label>
                             <Select defaultValue="dd-mm-yyyy">
-                              <SelectTrigger className="border-2 border-blue-200 focus:ring-blue-500 focus:border-blue-500">
+                              <SelectTrigger className="h-12 border-slate-200 rounded-2xl bg-slate-50/50 focus:ring-blue-500 focus:border-blue-500 font-bold text-slate-700">
                                 <SelectValue placeholder="Select date format" />
                               </SelectTrigger>
-                              <SelectContent>
+                              <SelectContent className="rounded-2xl border-slate-100 shadow-2xl z-[100]">
                                 <SelectItem value="dd-mm-yyyy">DD-MM-YYYY</SelectItem>
                                 <SelectItem value="mm-dd-yyyy">MM-DD-YYYY</SelectItem>
                                 <SelectItem value="yyyy-mm-dd">YYYY-MM-DD</SelectItem>
@@ -3142,51 +2756,33 @@ export default function AdminDashboard() {
                         </div>
                       </div>
 
-                      <div>
-                        <h3 className="text-xl font-semibold text-blue-900 mb-4 flex items-center">
-                          <Bell className="h-5 w-5 mr-2 text-blue-600" />
-                          Notification Settings
+                      <div className="pt-4 mt-8 border-t border-slate-100">
+                        <h3 className="text-[10px] font-black text-slate-400 mb-6 flex items-center uppercase tracking-[0.2em]">
+                          <Bell className="h-4 w-4 mr-2" />
+                          Global Notifications
                         </h3>
-                        <div className="space-y-4">
-                          <div className="flex items-center justify-between p-4 bg-blue-50 rounded-lg border border-blue-200">
-                            <div>
-                              <p className="text-sm font-medium text-blue-900">Email Notifications</p>
-                              <p className="text-sm text-blue-700">Send system alerts via email</p>
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                          {[
+                            { label: "Email Alerts", desc: "System critical alerts", status: "Enabled", icon: Mail },
+                            { label: "SMS Gateway", desc: "Emergency notifications", status: "Active", icon: Phone },
+                            { label: "Push Service", desc: "Real-time updates", status: "Connected", icon: Bell },
+                          ].map((notif, idx) => (
+                            <div key={idx} className="p-5 bg-white rounded-[1.8rem] border border-slate-100 shadow-sm hover:shadow-md transition-all group">
+                              <div className="flex justify-between items-start mb-4">
+                                <div className="p-2.5 bg-blue-50 text-blue-600 rounded-2xl group-hover:bg-blue-600 group-hover:text-white transition-all">
+                                  <notif.icon size={18} />
+                                </div>
+                                <Badge className="bg-emerald-50 text-emerald-600 border-none font-bold text-[9px] uppercase tracking-tighter">
+                                  {notif.status}
+                                </Badge>
+                              </div>
+                              <h4 className="text-xs font-black text-slate-900 uppercase tracking-tight mb-1">{notif.label}</h4>
+                              <p className="text-[10px] font-bold text-slate-400 mb-4">{notif.desc}</p>
+                              <Button variant="ghost" className="w-full justify-center text-[10px] font-black uppercase text-blue-600 bg-blue-50/50 hover:bg-blue-600 hover:text-white rounded-xl py-1 transform transition-all active:scale-95">
+                                Configure
+                              </Button>
                             </div>
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              className="border-green-500 text-green-600 hover:bg-green-100 hover:border-green-600 transition-colors duration-200"
-                            >
-                              Enabled
-                            </Button>
-                          </div>
-                          <div className="flex items-center justify-between p-4 bg-blue-50 rounded-lg border border-blue-200">
-                            <div>
-                              <p className="text-sm font-medium text-blue-900">SMS Notifications</p>
-                              <p className="text-sm text-blue-700">Send alerts via SMS</p>
-                            </div>
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              className="border-green-500 text-green-600 hover:bg-green-100 hover:border-green-600 transition-colors duration-200"
-                            >
-                              Enabled
-                            </Button>
-                          </div>
-                          <div className="flex items-center justify-between p-4 bg-blue-50 rounded-lg border border-blue-200">
-                            <div>
-                              <p className="text-sm font-medium text-blue-900">Push Notifications</p>
-                              <p className="text-sm text-blue-700">Send alerts via push notifications</p>
-                            </div>
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              className="border-green-500 text-green-600 hover:bg-green-100 hover:border-green-600 transition-colors duration-200"
-                            >
-                              Enabled
-                            </Button>
-                          </div>
+                          ))}
                         </div>
                       </div>
                     </div>
@@ -3195,152 +2791,115 @@ export default function AdminDashboard() {
 
                 {/* System Status and Controls */}
                 <div className="space-y-6">
-                  <Card className="shadow-lg hover:shadow-xl transition-shadow duration-300 border-2 border-blue-100">
-                    <CardHeader className="bg-blue-50 border-b-2 border-blue-200 rounded-t-lg">
-                      <CardTitle className="flex items-center text-blue-900">
+                  <Card className="rounded-[2.5rem] shadow-2xl shadow-slate-200/50 border-none overflow-hidden hover:shadow-blue-900/10 transition-all duration-300">
+                    <CardHeader className="bg-slate-50/80 p-6 border-b border-white">
+                      <CardTitle className="flex items-center text-slate-800 text-lg font-black uppercase tracking-widest">
                         <Activity className="h-5 w-5 mr-2 text-blue-600" />
-                        System Status
+                        Live Status
                       </CardTitle>
                     </CardHeader>
-                    <CardContent className="pt-4">
-                      <div className="space-y-4">
-                        <div className="flex items-center justify-between p-3 bg-green-50 rounded-lg border border-green-200">
-                          <div className="flex items-center">
-                            <CheckCircle className="h-5 w-5 text-green-600 mr-2" />
-                            <p className="text-sm font-medium text-green-800">Database Connection</p>
-                          </div>
-                          <Badge className="bg-green-100 text-green-800">Connected</Badge>
-                        </div>
-                        <div className="flex items-center justify-between p-3 bg-green-50 rounded-lg border border-green-200">
-                          <div className="flex items-center">
-                            <CheckCircle className="h-5 w-5 text-green-600 mr-2" />
-                            <p className="text-sm font-medium text-green-800">Server Status</p>
-                          </div>
-                          <Badge className="bg-green-100 text-green-800">Online</Badge>
-                        </div>
-                        <div className="flex items-center justify-between p-3 bg-green-50 rounded-lg border border-green-200">
-                          <div className="flex items-center">
-                            <CheckCircle className="h-5 w-5 text-green-600 mr-2" />
-                            <p className="text-sm font-medium text-green-800">API Services</p>
-                          </div>
-                          <Badge className="bg-green-100 text-green-800">Operational</Badge>
-                        </div>
-                        <div className="flex items-center justify-between p-3 bg-yellow-50 rounded-lg border border-yellow-200">
-                          <div className="flex items-center">
-                            <AlertCircle className="h-5 w-5 text-yellow-600 mr-2" />
-                            <div>
-                              <p className="text-sm font-medium text-yellow-800">Storage</p>
-                              <p className="text-xs text-yellow-700">85% of 500GB used</p>
+                    <CardContent className="p-6">
+                      <div className="space-y-3">
+                        {[
+                          { icon: CheckCircle, label: "Database", status: "Connected", color: "text-emerald-600", bg: "bg-emerald-50", badge: "bg-emerald-100 text-emerald-700" },
+                          { icon: CheckCircle, label: "Server", status: "Online", color: "text-blue-600", bg: "bg-blue-50", badge: "bg-blue-100 text-blue-700" },
+                          { icon: CheckCircle, label: "API Services", status: "Operational", color: "text-indigo-600", bg: "bg-indigo-50", badge: "bg-indigo-100 text-indigo-700" },
+                          { icon: AlertCircle, label: "Storage", status: "Warning", color: "text-amber-600", bg: "bg-amber-50", badge: "bg-amber-100 text-amber-700", sub: "85% of 500GB used" },
+                        ].map((item, idx) => (
+                          <div key={idx} className={cn("flex items-center justify-between p-3 rounded-2xl border border-white shadow-sm", item.bg)}>
+                            <div className="flex items-center">
+                              <item.icon className={cn("h-5 w-5 mr-3", item.color)} />
+                              <div>
+                                <p className="text-[11px] font-black uppercase text-slate-900 tracking-tight">{item.label}</p>
+                                {item.sub && <p className="text-[9px] font-bold text-slate-500 italic mt-0.5">{item.sub}</p>}
+                              </div>
                             </div>
+                            <Badge className={cn("rounded-lg text-[9px] font-black border-none px-2 py-0.5 shadow-sm", item.badge)}>{item.status}</Badge>
                           </div>
-                          <Badge className="bg-yellow-100 text-yellow-800">Warning</Badge>
-                        </div>
+                        ))}
                       </div>
-                      <div className="mt-4 pt-4 border-t border-blue-200">
-                        <div className="flex justify-between mb-1">
-                          <span className="text-sm font-medium text-blue-800">Storage Usage</span>
-                          <span className="text-sm font-medium text-blue-800">85%</span>
+                      <div className="mt-6 pt-6 border-t border-slate-100">
+                        <div className="flex justify-between items-end mb-3">
+                           <div className="flex flex-col">
+                             <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Storage Efficiency</span>
+                             <span className="text-xl font-black text-slate-900">85<span className="text-slate-300 text-sm ml-0.5">%</span></span>
+                           </div>
+                           <Badge className="bg-amber-50 text-amber-600 border-none font-black text-[9px]">CRITICAL THRESHOLD</Badge>
                         </div>
-                        <ProgressBar value={85} max={100} color="bg-blue-500" />
+                        <div className="h-3 w-full bg-slate-100 rounded-full overflow-hidden p-0.5">
+                           <div 
+                             className="h-full bg-gradient-to-r from-blue-500 to-blue-600 rounded-full shadow-lg shadow-blue-100 transition-all duration-1000" 
+                             style={{ width: '85%' }}
+                           ></div>
+                        </div>
                       </div>
                     </CardContent>
                   </Card>
 
-                  <Card className="shadow-lg hover:shadow-xl transition-shadow duration-300 border-2 border-blue-100">
-                    <CardHeader className="bg-blue-50 border-b-2 border-blue-200 rounded-t-lg">
-                      <CardTitle className="flex items-center text-blue-900">
+                  <Card className="rounded-[2.5rem] shadow-2xl shadow-slate-200/50 border-none overflow-hidden hover:shadow-blue-900/10 transition-all duration-300">
+                    <CardHeader className="bg-slate-50/80 p-6 border-b border-white">
+                      <CardTitle className="flex items-center text-slate-800 text-lg font-black uppercase tracking-widest">
                         <Shield className="h-5 w-5 mr-2 text-blue-600" />
-                        Security
+                        Infrastructure Security
                       </CardTitle>
                     </CardHeader>
-                    <CardContent className="pt-4">
-                      <div className="space-y-4">
-                        <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg border border-gray-200">
-                          <div className="flex items-center">
-                            <Shield className="h-5 w-5 text-blue-600 mr-2" />
-                            <p className="text-sm font-medium text-blue-800">Two-Factor Authentication</p>
-                          </div>
-                          <Button variant="outline" size="sm" className="border-gray-300 text-gray-700 hover:bg-gray-100">
-                            Enabled
-                          </Button>
-                        </div>
-                        <div className="flex items-center justify-between p-3 bg-green-50 rounded-lg border border-green-200">
-                          <div className="flex items-center">
-                            <CheckCircle className="h-5 w-5 text-green-600 mr-2" />
-                            <div>
-                              <p className="text-sm font-medium text-green-800">Last Security Scan</p>
-                              <p className="text-xs text-green-700">2 hours ago</p>
-                            </div>
-                          </div>
-                          <Badge className="bg-green-100 text-green-800">Clean</Badge>
-                        </div>
-                        <div className="flex items-center justify-between p-3 bg-green-50 rounded-lg border border-green-200">
-                          <div className="flex items-center">
-                            <CheckCircle className="h-5 w-5 text-green-600 mr-2" />
-                            <p className="text-sm font-medium text-green-800">SSL Certificate</p>
-                          </div>
-                          <Badge className="bg-green-100 text-green-800">Valid</Badge>
-                        </div>
+                    <CardContent className="p-6">
+                      <div className="space-y-3">
+                        {[
+                          { label: "Two-Factor Auth", status: "Active", icon: Shield, color: "text-blue-600", bg: "bg-blue-50" },
+                          { label: "SSL Certification", status: "Verified", icon: CheckCircle, color: "text-emerald-600", bg: "bg-emerald-50" },
+                          { label: "IP Whitelisting", status: "Managed", icon: Lock, color: "text-slate-600", bg: "bg-slate-50" },
+                        ].map((sec, idx) => (
+                           <div key={idx} className={cn("flex items-center justify-between p-3 rounded-2xl border border-white shadow-sm", sec.bg)}>
+                              <div className="flex items-center">
+                                <sec.icon className={cn("h-4 w-4 mr-3", sec.color)} />
+                                <span className="text-[10px] font-black uppercase text-slate-900 tracking-tight">{sec.label}</span>
+                              </div>
+                              <Badge className="bg-white text-slate-900 border-none text-[9px] font-black px-2 py-0.5 shadow-sm uppercase">{sec.status}</Badge>
+                           </div>
+                        ))}
                       </div>
-                      <div className="mt-4">
-                        <Button variant="outline" className="w-full border-blue-300 text-blue-700 hover:bg-blue-50 hover:border-blue-500 transition-colors duration-200">
-                          <RefreshCw className="h-4 w-4 mr-2" />
-                          Run Security Scan
+                      <div className="mt-6">
+                        <Button className="w-full bg-slate-900 hover:bg-black text-white rounded-2xl h-12 font-black uppercase text-[10px] tracking-widest shadow-xl shadow-slate-200 transition-all active:scale-95 flex items-center justify-center gap-2">
+                          <RefreshCw size={14} className="animate-spin-slow" />
+                          Initiate Deep Security Audit
                         </Button>
                       </div>
                     </CardContent>
                   </Card>
 
-                  <Card className="shadow-lg hover:shadow-xl transition-shadow duration-300 border-2 border-blue-100">
-                    <CardHeader className="bg-blue-50 border-b-2 border-blue-200 rounded-t-lg">
-                      <CardTitle className="flex items-center text-blue-900">
+                  <Card className="rounded-[2.5rem] shadow-2xl shadow-slate-200/50 border-none overflow-hidden hover:shadow-blue-900/10 transition-all duration-300">
+                    <CardHeader className="bg-slate-50/80 p-6 border-b border-white">
+                      <CardTitle className="flex items-center text-slate-800 text-lg font-black uppercase tracking-widest">
                         <RefreshCw className="h-5 w-5 mr-2 text-blue-600" />
-                        System Maintenance
+                        Maintenance
                       </CardTitle>
                     </CardHeader>
-                    <CardContent className="pt-4">
+                    <CardContent className="p-6">
                       <div className="space-y-4">
-                        <div className="space-y-2">
-                          <label className="block text-sm font-medium text-blue-800">Maintenance Window</label>
+                        <div className="space-y-3">
+                          <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest pl-1">Scheduled Window</label>
                           <Select defaultValue="night">
-                            <SelectTrigger className="border-2 border-blue-200 focus:ring-blue-500 focus:border-blue-500">
-                              <SelectValue placeholder="Select maintenance window" />
+                            <SelectTrigger className="h-12 border-slate-200 rounded-2xl bg-slate-50/50 focus:ring-blue-500 font-bold text-slate-700">
+                              <SelectValue placeholder="Select window" />
                             </SelectTrigger>
-                            <SelectContent>
+                            <SelectContent className="rounded-2xl border-slate-100 shadow-2xl z-[100]">
                               <SelectItem value="night">Night (12AM - 4AM)</SelectItem>
-                              <SelectItem value="weekend">Weekend</SelectItem>
-                              <SelectItem value="custom">Custom</SelectItem>
+                              <SelectItem value="weekend">Weekend Maintenance</SelectItem>
+                              <SelectItem value="custom">Emergency Custom</SelectItem>
                             </SelectContent>
                           </Select>
                         </div>
-                        <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg border border-gray-200">
-                          <div className="flex items-center">
-                            <Download className="h-5 w-5 text-blue-600 mr-2" />
-                            <p className="text-sm font-medium text-blue-800">Auto Backup</p>
-                          </div>
-                          <Button variant="outline" size="sm" className="border-gray-300 text-gray-700 hover:bg-gray-100">
-                            Enabled
-                          </Button>
+                        <div className="grid grid-cols-2 gap-3">
+                           <Button variant="ghost" className="h-12 rounded-2xl bg-slate-50 text-[10px] font-black uppercase tracking-widest text-slate-600 hover:bg-blue-600 hover:text-white transition-all">
+                              <Download size={14} className="mr-2" />
+                              Backup
+                           </Button>
+                           <Button variant="ghost" className="h-12 rounded-2xl bg-slate-50 text-[10px] font-black uppercase tracking-widest text-slate-600 hover:bg-blue-600 hover:text-white transition-all">
+                              <RefreshCw size={14} className="mr-2" />
+                              Update
+                           </Button>
                         </div>
-                        <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg border border-gray-200">
-                          <div className="flex items-center">
-                            <RefreshCw className="h-5 w-5 text-blue-600 mr-2" />
-                            <p className="text-sm font-medium text-blue-800">System Updates</p>
-                          </div>
-                          <Button variant="outline" size="sm" className="border-gray-300 text-gray-700 hover:bg-gray-100">
-                            Enabled
-                          </Button>
-                        </div>
-                      </div>
-                      <div className="mt-4 grid grid-cols-2 gap-2">
-                        <Button variant="outline" className="border-blue-300 text-blue-700 hover:bg-blue-50 hover:border-blue-500 transition-colors duration-200">
-                          <Download className="h-4 w-4 mr-1" />
-                          Backup Now
-                        </Button>
-                        <Button variant="outline" className="border-blue-300 text-blue-700 hover:bg-blue-50 hover:border-blue-500 transition-colors duration-200">
-                          <RefreshCw className="h-4 w-4 mr-1" />
-                          Restart Services
-                        </Button>
                       </div>
                     </CardContent>
                   </Card>
@@ -3406,7 +2965,7 @@ export default function AdminDashboard() {
                             <SelectTrigger className="border-2 border-blue-200 focus:ring-blue-500 focus:border-blue-500">
                               <SelectValue placeholder="Select policy" />
                             </SelectTrigger>
-                            <SelectContent>
+                            <SelectContent position="popper" className="z-[9999]">
                               <SelectItem value="standard">Standard</SelectItem>
                               <SelectItem value="strong">Strong</SelectItem>
                               <SelectItem value="enterprise">Enterprise</SelectItem>
@@ -3422,7 +2981,7 @@ export default function AdminDashboard() {
                             <SelectTrigger className="w-24 border-2 border-blue-200 focus:ring-blue-500 focus:border-blue-500">
                               <SelectValue />
                             </SelectTrigger>
-                            <SelectContent>
+                            <SelectContent position="popper" className="z-[9999]">
                               <SelectItem value="15">15 min</SelectItem>
                               <SelectItem value="30">30 min</SelectItem>
                               <SelectItem value="60">60 min</SelectItem>
@@ -3446,7 +3005,7 @@ export default function AdminDashboard() {
                             <SelectTrigger className="w-24 border-2 border-blue-200 focus:ring-blue-500 focus:border-blue-500">
                               <SelectValue />
                             </SelectTrigger>
-                            <SelectContent>
+                            <SelectContent position="popper" className="z-[9999]">
                               <SelectItem value="30">30 days</SelectItem>
                               <SelectItem value="90">90 days</SelectItem>
                               <SelectItem value="365">365 days</SelectItem>
@@ -3470,18 +3029,92 @@ export default function AdminDashboard() {
             </div>
           )}
 
-          {/* Flow Monitor Dashboard */}
-          {activeTab === "flow" && (
-            <div className="space-y-6 pb-10">
-              <div className="flex justify-between items-center px-4 md:px-6">
-                <h1 className="text-2xl font-black text-slate-900 tracking-tight">Real-time Flow Monitor</h1>
-                <Badge className="bg-emerald-100 text-emerald-700 border-none font-black px-4 py-1.5 rounded-full">
-                  LIVE SYSTEM ACTIVE
-                </Badge>
-              </div>
+          {/* Patient Edit Slide-Out Panel */}
+          {editingPatient && (
+            <div className="fixed inset-0 z-50 flex justify-end" onClick={(e) => e.target === e.currentTarget && setEditingPatient(null)}>
+              <div className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm" onClick={() => setEditingPatient(null)} />
+              <div className="relative w-full max-w-md bg-white h-full flex flex-col shadow-2xl border-l border-slate-100 animate-in slide-in-from-right duration-300">
+                {/* Header */}
+                <div className="flex items-center justify-between px-8 py-6 border-b border-slate-100 bg-slate-50/60">
+                  <div>
+                    <h2 className="text-lg font-black text-slate-900 uppercase tracking-tight">Edit Patient</h2>
+                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">{editingPatient.username || editingPatient._id?.slice(-8)}</p>
+                  </div>
+                  <button onClick={() => setEditingPatient(null)} className="h-10 w-10 flex items-center justify-center rounded-2xl hover:bg-slate-200 text-slate-400 transition-all">
+                    <X size={20} />
+                  </button>
+                </div>
 
-              <div className="px-4 md:px-6">
-                <FlowMonitorKanban />
+                {/* Avatar */}
+                <div className="flex flex-col items-center pt-8 pb-4 border-b border-slate-100">
+                  <div className="h-20 w-20 rounded-3xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white font-black text-3xl shadow-xl shadow-blue-500/20 mb-3">
+                    {patientEditName.charAt(0).toUpperCase() || "P"}
+                  </div>
+                  <p className="text-xs font-black text-slate-500 uppercase tracking-widest">Patient Record</p>
+                </div>
+
+                {/* Form Fields */}
+                <div className="flex-1 overflow-y-auto px-8 py-6 space-y-5">
+                  <div>
+                    <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Full Name</label>
+                    <input
+                      value={patientEditName}
+                      onChange={(e) => setPatientEditName(e.target.value)}
+                      className="w-full border-2 border-slate-200 focus:border-blue-500 rounded-xl px-4 py-3 text-sm font-bold text-slate-800 outline-none transition-all bg-slate-50 focus:bg-white"
+                      placeholder="Full name"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Email Address</label>
+                    <input
+                      type="email"
+                      value={patientEditEmail}
+                      onChange={(e) => setPatientEditEmail(e.target.value)}
+                      className="w-full border-2 border-slate-200 focus:border-blue-500 rounded-xl px-4 py-3 text-sm font-bold text-slate-800 outline-none transition-all bg-slate-50 focus:bg-white"
+                      placeholder="Email address"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Phone Number</label>
+                    <input
+                      value={patientEditPhone}
+                      onChange={(e) => setPatientEditPhone(e.target.value)}
+                      className="w-full border-2 border-slate-200 focus:border-blue-500 rounded-xl px-4 py-3 text-sm font-bold text-slate-800 outline-none transition-all bg-slate-50 focus:bg-white"
+                      placeholder="Phone number"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Address</label>
+                    <textarea
+                      value={patientEditAddress}
+                      onChange={(e) => setPatientEditAddress(e.target.value)}
+                      rows={3}
+                      className="w-full border-2 border-slate-200 focus:border-blue-500 rounded-xl px-4 py-3 text-sm font-bold text-slate-800 outline-none transition-all bg-slate-50 focus:bg-white resize-none"
+                      placeholder="Home address"
+                    />
+                  </div>
+                  <div className="bg-blue-50 rounded-2xl px-5 py-4 border border-blue-100">
+                    <p className="text-[9px] font-black text-blue-400 uppercase tracking-widest mb-1">Access ID</p>
+                    <p className="text-xs font-black text-blue-700 uppercase">{editingPatient.username || "—"}</p>
+                  </div>
+                </div>
+
+                {/* Footer Actions */}
+                <div className="px-8 py-6 border-t border-slate-100 flex gap-3">
+                  <button
+                    onClick={() => setEditingPatient(null)}
+                    className="flex-1 h-12 rounded-xl border-2 border-slate-200 text-slate-600 font-black uppercase text-[11px] tracking-widest hover:bg-slate-100 transition-all"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={handleSavePatientEdit}
+                    disabled={patientEditSaving}
+                    className="flex-1 h-12 rounded-xl bg-blue-600 border-b-4 border-blue-800 text-white font-black uppercase text-[11px] tracking-widest hover:bg-blue-700 active:translate-y-0.5 active:border-b-0 transition-all shadow-xl shadow-blue-500/20 disabled:opacity-60"
+                  >
+                    {patientEditSaving ? "Saving..." : "Save Changes"}
+                  </button>
+                </div>
               </div>
             </div>
           )}

@@ -7,8 +7,8 @@
   "proxy": "http://localhost:5000",
   "scripts": {
     "dev": "node -e \"if (!require('fs').existsSync('node_modules')) { console.log('📦 Installing dependencies...'); require('child_process').execSync('npm install', { stdio: 'inherit' }); }\" && node -e \"try { require('child_process').execSync('npx --no vite --version', { stdio: 'ignore' }); } catch (e) { console.log('⚙️ Installing vite...'); require('child_process').execSync('npm install vite', { stdio: 'inherit' }); }\" && echo '🚀 Starting dev server...' && npx vite",
-    "dev:full": "concurrently \"cd backend; npm run dev\" \"npm run dev\"",
-    "server": "cd backend; npm run dev",
+    "dev:full": "concurrently \"cd ../backend; npm run dev\" \"npm run dev\"",
+    "server": "cd ../backend; npm run dev",
     "client": "npm run dev",
     "start": "npm run dev",
     "build": "vite build",
@@ -21,7 +21,7 @@
     "deploy": "gh-pages -d dist",
     "deploy-frontend": "node deploy-frontend/deploy.js",
     "check": "vite --version && echo '✅ Dependencies verified successfully!'",
-    "postinstall": "npm run check && npm run build"
+    "postinstall": "npm run check"
   },
   "dependencies": {
     "@radix-ui/react-accordion": "^1.2.12",

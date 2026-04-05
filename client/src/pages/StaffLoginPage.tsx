@@ -2,57 +2,59 @@ import { useState, useEffect } from "react";
 import { useLanguage } from "../contexts/LanguageContext";
 import { useNavigate } from "react-router-dom";
 import LanguageSelector from "../components/common/LanguageSelector";
-import { Eye, Clock, Shield, Stethoscope, Camera, Lock, AlertTriangle, ArrowRight, UserCircle, BriefcaseMedical, Landmark, Pill, Users } from "lucide-react";
+import {
+    Clock, Shield, Stethoscope, Camera,
+    ArrowRight, BriefcaseMedical, Landmark,
+    Pill, Activity, FileText
+} from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../components/ui/select";
-import { Button } from "../components/ui/button";
-
-// ─── Role Definitions ─────────────────────────────────────────────────────────
+import { Label } from "../components/ui/label";
 
 const ROLES = [
     {
         id: "admin",
-        label: "Administrator",
-        sub: "Maximum Security Access",
+        label: "System Administrator",
+        sub: "IT & Infrastructure Oversight",
         icon: Shield,
         path: "/admin-login",
-        color: "text-indigo-800",
-        bg: "bg-indigo-50",
+        color: "text-blue-800",
+        bg: "bg-blue-100",
     },
     {
         id: "doctor",
-        label: "Medical Doctor",
-        sub: "Clinical Systems Access",
+        label: "Medical Practitioner",
+        sub: "Clinical Systems & Patient Care",
         icon: Stethoscope,
         path: "/doctor-login",
-        color: "text-indigo-600",
-        bg: "bg-indigo-50",
-    },
-    {
-        id: "nurse",
-        label: "Nurse",
-        sub: "Patient Care Access",
-        icon: BriefcaseMedical,
-        path: "/nurse-login",
-        color: "text-blue-600",
+        color: "text-blue-700",
         bg: "bg-blue-50",
     },
     {
+        id: "nurse",
+        label: "Nursing Staff",
+        sub: "Ward Management & Vitals",
+        icon: BriefcaseMedical,
+        path: "/nurse-login",
+        color: "text-blue-600",
+        bg: "bg-white border border-blue-100",
+    },
+    {
         id: "receptionist",
-        label: "Receptionist",
-        sub: "Front Desk & Scheduling",
+        label: "Front Desk & Administration",
+        sub: "Patient Registration & Scheduling",
         icon: Landmark,
         path: "/reception-login",
-        color: "text-indigo-400",
-        bg: "bg-indigo-50/50",
+        color: "text-blue-800",
+        bg: "bg-blue-50",
     },
     {
         id: "pharmacist",
-        label: "Pharmacist",
-        sub: "Pharmacy & Dispensary",
+        label: "Pharmacy Operations",
+        sub: "Dispensary & Inventory Management",
         icon: Pill,
         path: "/pharmacist-login",
-        color: "text-blue-400",
-        bg: "bg-blue-50/50",
+        color: "text-blue-700",
+        bg: "bg-white border border-blue-100",
     },
 ];
 
@@ -61,157 +63,178 @@ export default function StaffLoginPage() {
     const navigate = useNavigate();
     const [currentTime, setCurrentTime] = useState(new Date());
     const [selectedRole, setSelectedRole] = useState<string>("");
-    const [sessionId] = useState(() => `SES-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`);
+
+    const [sessionId] = useState(() => `AUTH-${Date.now()}-${Math.random().toString(36).substr(2, 6).toUpperCase()}`);
 
     useEffect(() => {
         const timer = setInterval(() => setCurrentTime(new Date()), 1000);
         return () => clearInterval(timer);
     }, []);
 
-    const handleEnterPortal = () => {
-        const role = ROLES.find(r => r.id === selectedRole);
-        if (role) {
-            navigate(role.path);
-        }
-    };
-
-    const currentRoleData = ROLES.find(r => r.id === selectedRole);
-    const IconComponent = currentRoleData?.icon || UserCircle;
-
     return (
-        <div className="min-h-screen bg-[#f8faff] flex flex-col items-center p-4 pb-20 md:pb-32 relative overflow-hidden font-sans">
-            {/* Soft Ambient Background Elements */}
-            <div className="absolute top-[-10%] right-[-10%] w-[40%] h-[40%] bg-blue-100 rounded-full blur-[120px] opacity-40 pointer-events-none" />
-            <div className="absolute bottom-[-10%] left-[-10%] w-[30%] h-[30%] bg-indigo-50 rounded-full blur-[100px] opacity-30 pointer-events-none" />
-
-            {/* Subtle grid background */}
-            <div className="absolute inset-0 opacity-10 pointer-events-none"
-                style={{
-                    backgroundImage: `radial-gradient(circle at 1px 1px, rgba(0,0,0,0.1) 1px, transparent 0)`,
-                    backgroundSize: "40px 40px"
-                }}
-            />
-
-            {/* Top security banner */}
-            <div className="absolute top-0 left-0 right-0 bg-white border-b border-slate-100 py-2.5 z-20">
-                <div className="flex items-center justify-center gap-3 text-slate-400 text-[10px] font-black uppercase tracking-[0.2em]">
-                    <Eye className="h-3.5 w-3.5 text-slate-300" />
-                    <span>Secure Access Portal — All Activities Monitored & Logged</span>
-                    <Camera className="h-3.5 w-3.5 text-slate-300" />
+        <div className="min-h-screen bg-white flex flex-col lg:flex-row font-sans text-blue-950">
+            {/* Left Side: Branding and Information Panel */}
+            <div className="hidden lg:flex lg:w-5/12 bg-blue-600 text-white flex-col justify-between p-12 relative overflow-hidden">
+                {/* Background Large Logo */}
+                <div className="absolute inset-0 flex items-center justify-center opacity-5 pointer-events-none mix-blend-overlay">
+                    <img src="/sevamed logo.png" alt="" className="w-[150%] max-w-none h-auto object-contain" />
                 </div>
-            </div>
 
-            {/* Header / Branding Section */}
-            <div className="w-full max-w-md mt-10 md:mt-16 mb-4 md:mb-8 text-center relative z-10 space-y-2 md:space-y-4">
-                <div className="flex flex-col items-center gap-3">
-                    <div className="w-10 h-10 md:w-14 md:h-14 bg-white rounded-xl flex items-center justify-center shadow-xl border border-blue-50 transform rotate-3 hover:rotate-0 transition-all duration-500">
-                        <img src="/sevamed logo.png" alt="SevaMed Logo" className="w-6 h-6 md:w-8 md:h-8 object-contain" />
-                    </div>
+                {/* Background Medical Tools Scatter */}
+                <div className="absolute inset-0 overflow-hidden pointer-events-none opacity-10">
+                    <Stethoscope className="absolute top-[10%] left-[10%] w-32 h-32 -rotate-12" />
+                    <Pill className="absolute top-[40%] right-[10%] w-24 h-24 rotate-45" />
+                    <Activity className="absolute bottom-[20%] left-[20%] w-40 h-40 rotate-[15deg]" />
+                    <BriefcaseMedical className="absolute bottom-[10%] right-[20%] w-28 h-28 -rotate-6" />
+                    <Shield className="absolute top-[20%] right-[30%] w-20 h-20 rotate-[30deg]" />
                 </div>
-                <div className="space-y-0.5">
-                    <h1 className="text-lg md:text-2xl font-black text-slate-900 tracking-tight uppercase">{t("sevamed_hms")}</h1>
-                    <p className="text-blue-500 font-black text-[8px] md:text-[9px] uppercase tracking-[0.3em] md:tracking-[0.4em]">Integrated Staff Gateway</p>
-                </div>
-            </div>
 
-            {/* Main Portal Selection Hub */}
-            <div className="w-full max-w-md relative z-10 px-4">
-                <div className="bg-white rounded-[1.2rem] md:rounded-[2.5rem] shadow-[0_15px_30px_-10px_rgba(79,70,229,0.1)] md:shadow-[0_30px_60px_-15px_rgba(79,70,229,0.1)] border border-blue-50 overflow-hidden flex flex-col">
-                    {/* Blue-Indigo Header */}
-                    <div className="p-4 pb-3 md:p-8 md:pb-5 text-center space-y-1.5 border-b border-blue-50 bg-gradient-to-r from-blue-700 to-indigo-800">
-                        <h2 className="text-base md:text-lg font-black text-white uppercase tracking-tight">Staff Authentication</h2>
-                        <p className="text-blue-100 font-bold text-[8px] md:text-[9px] uppercase tracking-[0.2em] md:tracking-widest">Select your professional portal</p>
+                <div className="relative z-10">
+                    <div className="flex items-center gap-4 mb-16">
+                        <div className="bg-white p-2.5 rounded-xl shadow-lg border-2 border-blue-100">
+                            <img src="/sevamed logo.png" alt="SevaMed Logo" className="w-8 h-8 md:w-10 md:h-10 object-contain" />
+                        </div>
+                        <div>
+                            <h2 className="text-2xl font-black tracking-tight uppercase text-white">SevaMed</h2>
+                            <p className="text-blue-100 text-[10px] font-bold tracking-[0.3em] uppercase">Healthcare Systems</p>
+                        </div>
                     </div>
 
-                    <div className="p-4 md:p-8 space-y-4 md:space-y-6">
-                        {/* Dynamic Preview/Icon Area */}
-                        <div className="flex justify-center">
-                            <div className={`w-16 h-16 md:w-24 md:h-24 rounded-[1.2rem] md:rounded-[2rem] flex items-center justify-center transition-all duration-700 ${currentRoleData ? `${currentRoleData.bg} ${currentRoleData.color} scale-110 shadow-lg` : 'bg-slate-50 text-slate-200'}`}>
-                                <IconComponent className="h-8 w-8 md:h-12 md:w-12" />
+                    <h1 className="text-4xl lg:text-5xl font-light mb-6 leading-tight tracking-tight">
+                        Integrated Clinical <br />
+                        <span className="font-bold text-white">Management Portal</span>
+                    </h1>
+
+                    <p className="text-blue-100 mb-12 max-w-md leading-relaxed text-sm">
+                        Secure access gateway for credentialed healthcare professionals. Ensure you are operating within a secure network environment before authenticating.
+                    </p>
+
+                    <div className="space-y-8">
+                        <div className="flex items-start gap-4 p-4 rounded-2xl bg-white/10 border border-white/20 backdrop-blur-md">
+                            <Activity className="w-6 h-6 text-blue-200 shrink-0 mt-0.5" />
+                            <div>
+                                <h3 className="font-semibold text-white text-sm">System Status</h3>
+                                <p className="text-xs text-blue-100 mt-1.5 leading-relaxed">All clinical modules are operating normally. Real-time patient data synchronization is optimally active.</p>
                             </div>
                         </div>
-
-                        {/* Role Selector */}
-                        <div className="space-y-1.5 relative">
-                            <div className="flex justify-between items-center px-4 mb-1.5">
-                                <label className="text-[8px] font-black text-indigo-400 uppercase tracking-widest">Choose Role</label>
-                                <LanguageSelector />
+                        <div className="flex items-start gap-4 p-4 rounded-2xl bg-white/10 border border-white/20 backdrop-blur-md">
+                            <Shield className="w-6 h-6 text-blue-200 shrink-0 mt-0.5" />
+                            <div>
+                                <h3 className="font-semibold text-white text-sm">Security Protocol</h3>
+                                <p className="text-xs text-blue-100 mt-1.5 leading-relaxed">Military-grade end-to-end encryption enforced. <br /><span className="font-mono text-[10px] text-blue-300 mt-1 block">Session ID: {sessionId}</span></p>
                             </div>
-                            <Select onValueChange={setSelectedRole} value={selectedRole}>
-                                <SelectTrigger className="w-full h-10 md:h-14 rounded-[1rem] md:rounded-[2rem] border-2 border-slate-100 bg-slate-50 focus:border-indigo-500 focus:bg-white transition-all text-xs md:text-base font-black uppercase text-slate-700 px-4 md:px-6 flex items-center shadow-sm z-10">
-                                    <SelectValue placeholder="Staff Identity" />
+                        </div>
+                        <div className="flex items-start gap-4 p-4 rounded-2xl bg-white/10 border border-white/20 backdrop-blur-md">
+                            <FileText className="w-6 h-6 text-blue-200 shrink-0 mt-0.5" />
+                            <div>
+                                <h3 className="font-semibold text-white text-sm">Compliance Notice</h3>
+                                <p className="text-xs text-blue-100 mt-1.5 leading-relaxed">Accessing patient records is governed by strict privacy laws (HIPAA/GDPR equivalent). Unauthorized access is strictly prohibited.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div className="relative z-10 flex items-center gap-4 text-[10px] text-blue-200 font-semibold tracking-wider uppercase mt-12">
+                    <span>© {new Date().getFullYear()} SevaMed Health</span>
+                    <span className="text-blue-400">•</span>
+                    <a href="#" className="hover:text-white transition-colors">Privacy</a>
+                    <span className="text-blue-400">•</span>
+                    <a href="#" className="hover:text-white transition-colors">Terms</a>
+                    <span className="text-blue-400">•</span>
+                    <a href="#" className="hover:text-white transition-colors">Support</a>
+                </div>
+            </div>
+
+            {/* Right Side: Login Form */}
+            <div className="flex-1 flex flex-col justify-center items-center p-6 sm:p-12 lg:p-24 relative bg-blue-50/30">
+                {/* Mobile Background Elements */}
+                <div className="lg:hidden absolute top-0 right-0 w-[300px] h-[300px] bg-blue-100 rounded-full blur-[100px] opacity-60 -translate-y-1/2 translate-x-1/2 pointer-events-none" />
+                <div className="lg:hidden absolute inset-0 flex items-center justify-center opacity-5 pointer-events-none">
+                    <img src="/sevamed logo.png" alt="" className="w-full max-w-[400px] h-auto object-contain" />
+                </div>
+
+                {/* Top Right Language & Time */}
+                <div className="absolute top-4 right-4 lg:top-8 lg:right-8 flex items-center gap-4 lg:gap-6 z-20">
+                    <div className="hidden sm:flex items-center gap-2 text-xs font-bold text-blue-600 bg-white px-4 py-2 rounded-full shadow-sm border border-blue-100 tracking-wider">
+                        <Clock className="w-3.5 h-3.5" />
+                        {currentTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
+                    </div>
+                    <LanguageSelector />
+                </div>
+
+                <div className="w-full max-w-[420px] relative z-10">
+                    {/* Mobile Header (Hidden on Desktop) */}
+                    <div className="lg:hidden flex flex-col items-center mb-10 text-center">
+                        <div className="bg-white p-3 rounded-2xl shadow-xl shadow-blue-500/10 border border-blue-100 mb-5 relative">
+                            <div className="absolute inset-0 bg-blue-500 blur-xl opacity-10 rounded-full"></div>
+                            <img src="/sevamed logo.png" alt="SevaMed Logo" className="w-10 h-10 object-contain relative z-10" />
+                        </div>
+                        <h1 className="text-2xl font-black text-blue-950 mb-1 tracking-tight">{t("sevamed_hms")}</h1>
+                        <p className="text-[10px] font-black text-blue-600 uppercase tracking-[0.3em]">Access Gateway</p>
+                    </div>
+
+                    <div className="mb-8 lg:mb-12 text-center lg:text-left">
+                        <h2 className="text-2xl lg:text-3xl font-bold text-blue-950 mb-2 tracking-tight">Staff Authentication</h2>
+                        <p className="text-blue-600/80 text-sm font-medium">Please verify your identity to access the facility dashboard.</p>
+                    </div>
+
+                    <div className="space-y-5">
+
+                        <div className="space-y-2 relative z-50">
+                            <Label className="text-xs font-bold text-blue-900 uppercase tracking-wider ml-1">Role Designation <span className="text-red-500">*</span></Label>
+                            <Select onValueChange={(val) => {
+                                setSelectedRole(val);
+                                const role = ROLES.find(r => r.id === val);
+                                if (role) {
+                                    navigate(role.path);
+                                }
+                            }} value={selectedRole}>
+                                <SelectTrigger className="w-full h-14 bg-white border-blue-100 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/20 transition-all font-semibold text-blue-950 rounded-xl px-4 shadow-sm hover:border-blue-300">
+                                    <SelectValue placeholder="Select your functional role..." />
                                 </SelectTrigger>
-                                <SelectContent className="rounded-[1.5rem] md:rounded-[2rem] border-blue-50 p-1.5 md:p-2 shadow-[0_15px_40px_rgba(79,70,229,0.2)] bg-white/95 backdrop-blur-xl z-[100] min-w-[280px]">
+                                <SelectContent className="bg-white border-blue-100 shadow-2xl rounded-xl p-1 z-50">
                                     {ROLES.map((role) => (
                                         <SelectItem
                                             key={role.id}
                                             value={role.id}
-                                            className="h-14 md:h-16 rounded-[1.25rem] md:rounded-[1.5rem] font-black uppercase text-[10px] md:text-xs tracking-widest text-slate-600 focus:bg-indigo-600 focus:text-white mb-2 cursor-pointer transition-all px-4 md:px-6"
+                                            className="focus:bg-blue-50 focus:text-blue-900 cursor-pointer rounded-lg mb-1 last:mb-0 p-2 lg:p-3 transition-colors"
                                         >
-                                            <div className="flex items-center gap-4">
-                                                <div className={`p-2 rounded-xl ${role.bg}`}>
-                                                    <role.icon className={`h-4 w-4 ${role.color}`} />
+                                            <div className="flex items-center gap-3 md:gap-4">
+                                                <div className={`p-2 rounded-lg ${role.bg}`}>
+                                                    <role.icon className={`h-4 w-4 md:h-5 md:w-5 ${role.color}`} />
                                                 </div>
-                                                <span>{role.label}</span>
+                                                <div className="flex flex-col text-left">
+                                                    <span className="font-bold text-blue-950 text-sm">{role.label}</span>
+                                                    <span className="text-[10px] text-blue-600 font-semibold">{role.sub}</span>
+                                                </div>
                                             </div>
                                         </SelectItem>
                                     ))}
                                 </SelectContent>
                             </Select>
                         </div>
-
-                        {/* Action Button */}
-                        <Button
-                            onClick={handleEnterPortal}
-                            disabled={!selectedRole}
-                            className={`w-full h-10 md:h-14 rounded-full font-black text-xs md:text-base uppercase tracking-widest transition-all duration-500 shadow-md md:shadow-lg flex items-center justify-center gap-2 md:gap-3 ${selectedRole ? 'bg-indigo-600 hover:bg-indigo-700 text-white translate-y-[-2px] md:translate-y-[-4px] shadow-indigo-100' : 'bg-slate-100 text-slate-300 shadow-none'}`}
-                        >
-                            Enter Portal
-                            <ArrowRight className={`h-3 w-3 md:h-4 md:w-4 transition-transform duration-500 ${selectedRole ? 'translate-x-2' : ''}`} />
-                        </Button>
                     </div>
 
-                    {/* Footer Info */}
-                    <div className="px-4 py-3 md:px-8 md:py-4 bg-slate-50/50 border-t border-blue-50 flex items-center justify-between text-[8px] md:text-[9px] font-black text-indigo-300 uppercase tracking-widest">
-                        <div className="flex items-center gap-2">
-                            <div className={`w-1.5 h-1.5 rounded-full animate-pulse ${selectedRole ? 'bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.5)]' : 'bg-slate-200'}`} />
-                            <span>{selectedRole ? 'Port Ready' : 'Standby'}</span>
-                        </div>
-                        <div className="font-mono text-[8px] text-slate-400">{currentTime.toLocaleTimeString()}</div>
-                    </div>
-                </div>
-            </div>
-
-            {/* Professional Security Notice */}
-            <div className="w-full max-w-md mt-4 md:mt-6 px-4">
-                <div className="bg-white/50 backdrop-blur border border-blue-100/50 rounded-xl md:rounded-2xl p-3 md:p-4 flex gap-3 md:gap-4 items-start">
-                    <AlertTriangle className="h-3 w-3 md:h-4 md:w-4 text-indigo-400 shrink-0 mt-0.5" />
-                    <div className="space-y-0.5">
-                        <p className="text-[8px] md:text-[9px] font-black text-indigo-500 uppercase tracking-widest">Protocol:</p>
-                        <p className="text-[8px] md:text-[9px] font-bold text-slate-400 uppercase leading-relaxed">
-                            Authorized personnel only. Access attempt logged. IP: 127.0.0.1
+                    <div className="mt-8 lg:mt-12 text-center text-[11px] text-blue-400 border-t border-blue-100/50 pt-6">
+                        <p className="flex items-center justify-center gap-2 font-bold uppercase tracking-wider">
+                            <Shield className="w-3.5 h-3.5 text-blue-500" />
+                            Secure Connection Verified
+                            <span className="text-blue-200 mx-1">•</span>
+                            <Camera className="w-3.5 h-3.5 text-blue-400" />
+                            Session Monitored
                         </p>
                     </div>
-                </div>
-            </div>
 
-            {/* Bottom Nav Link */}
-            <div className="mt-6 md:mt-10 mb-20 md:mb-16">
-                <button
-                    onClick={() => navigate("/")}
-                    className="h-8 md:h-10 px-5 md:px-8 border border-slate-200 text-slate-400 hover:text-slate-600 hover:border-slate-300 rounded-full font-black text-[7px] md:text-[9px] uppercase tracking-[0.2em] transition-all"
-                >
-                    ← Back to Foundation
-                </button>
-            </div>
-
-            {/* Bottom Security Footer */}
-            <div className="fixed bottom-0 left-0 right-0 bg-white/80 backdrop-blur-md border-t border-blue-50 py-4 px-6 z-50 shadow-[0_-10px_40px_rgba(79,70,229,0.02)]">
-                <div className="flex items-center justify-center gap-10 opacity-30 text-indigo-600">
-                    <Shield className="h-4 w-4" />
-                    <Lock className="h-4 w-4" />
-                    <Clock className="h-4 w-4" />
-                    <Camera className="h-4 w-4" />
+                    {/* Back Button */}
+                    <div className="mt-8 text-center pb-8 lg:pb-0">
+                        <button
+                            onClick={() => navigate("/")}
+                            className="text-xs font-bold text-blue-400 hover:text-blue-700 transition-colors uppercase tracking-wider flex items-center justify-center gap-2 mx-auto"
+                        >
+                            <ArrowRight className="w-3.5 h-3.5 rotate-180" />
+                            Return to Patient Portal
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
